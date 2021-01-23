@@ -21,7 +21,7 @@ const JRPC_QUERIES: &[&str] = &[
     "validators.json",
 ];
 
-/// Spwan a server in another thread.
+/// Spawns a `Tendermock` instance in a separate thread.
 fn start_server() {
     let mut node = Tendermock::new();
     node.add_interface(JSON_RPC_ADDR.parse().unwrap(), GRPC_ADDR.parse().unwrap())
@@ -67,10 +67,20 @@ fn test_json_rpg(query: &str, jrpc_addr: &str) {
         .expect("HTTP request failed")
         .stdout
         .unwrap();
-    let is_success = Command::new("jq")
-        .arg(".result != null and .error == null")
-        .stdin(json_response)
-        .output()
-        .expect("Failed to parse response");
-    assert_eq!(String::from_utf8_lossy(&is_success.stdout), "true\n");
+
+    let object_raw: serde_json::error::Result<serde_json::Value> = serde_json::from_reader(json_response);
+    assert!(object_raw.is_ok());
+
+    let object = object_raw.unwrap();
+    assert!(object.is_object());
+    let obj_kv = object.as_object().unwrap();
+
+    // Check the 'result' field
+    let res = obj_kv.get("result");
+    assert!(res.is_some());
+    let res_inner = res.unwrap();
+    assert_ne!(res_inner.is_null(), true);  // Shouldn't have a 'null' here.
+
+    // Check the 'error' field
+    assert_ne!(obj_kv.contains_key("error"), true); // Shouldn't have an 'error'.
 }
