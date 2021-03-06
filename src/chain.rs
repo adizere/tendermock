@@ -129,14 +129,14 @@ mod test {
         let height = chain.get_height();
 
         // Chain is expected to start at height 1 (same as Storage)
-        assert_eq!(height.version_height, 1);
+        assert_eq!(height.revision_height, 1);
         chain.grow();
         let height = chain.get_height();
-        assert_eq!(height.version_height, 2);
+        assert_eq!(height.revision_height, 2);
         let block = chain.get_block(3);
         assert!(block.is_some()); // The third block is not yet valid, but we can retrieve it anyway
         chain.grow();
         let height = chain.get_height();
-        assert_eq!(height.version_height, 3); // Now the third block is valid
+        assert_eq!(height.revision_height, 3); // Now the third block is valid
     }
 }

@@ -3,7 +3,7 @@ use tendermock::Tendermock;
 
 // Define the CLI interface (see Clap doc)
 #[derive(Clap)]
-#[clap(version = "0.0.2")]
+#[clap(version = "0.1.0")]
 #[clap(verbatim_doc_comment)]
 /// Tendermock - a mocked Tendermint node
 pub struct Args {
@@ -15,6 +15,7 @@ pub struct Args {
     #[clap(short, long, default_value = "26657")]
     pub json_port: u16,
 
+    /// gRPC port
     #[clap(short, long, default_value = "50051")]
     pub grpc_port: u16,
 

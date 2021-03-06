@@ -20,7 +20,7 @@ pub fn get_info<S: Storage>(node: &Node<S>) -> AbciInfo {
         version: "v0.17.0".to_string(),
         app_version: 1,
         last_block_height: tendermint::block::Height::from(
-            chain.get_height().version_height as u32,
+            chain.get_height().revision_height as u32,
         ),
         last_block_app_hash: vec![],
     }

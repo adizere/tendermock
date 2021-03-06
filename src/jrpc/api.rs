@@ -2,7 +2,8 @@
 use ibc::ics26_routing::handler::deliver;
 use ibc_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use prost::Message;
-use tendermint::abci::{transaction::Hash, Code};
+use tendermint::abci::{transaction::Hash, Code, Info};
+use tendermint::abci::responses::Codespace;
 use tendermint_rpc::endpoint::{
     abci_info::Request as AbciInfoRequest, abci_info::Response as AbciInfoResponse,
     abci_query::Request as AbciQueryRequest, abci_query::Response as AbciQueryResponse,
@@ -228,6 +229,11 @@ where
             code: Code::Ok,
             data: None,
             log: "Success".into(),
+            codespace: Codespace::default(),
+            gas_used: 10.into(),
+            gas_wanted: 10.into(),
+            info: Info::default(),
+            events: vec![],
         };
         Ok(BroadcastTxCommitResponse {
             check_tx: tx_result.clone(),

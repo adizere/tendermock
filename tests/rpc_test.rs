@@ -1,6 +1,6 @@
+//! Integration tests for tendermock JsonRPC and gRPC server.
 use ibc_proto::cosmos::staking::v1beta1::query_client::QueryClient;
 use ibc_proto::cosmos::staking::v1beta1::QueryParamsRequest;
-/// Integration tests for tendermock JsonRPC and gRPC server.
 use std::process::{Command, Stdio};
 use tendermock::Tendermock;
 use tokio;
@@ -38,7 +38,7 @@ async fn rpc() {
     start_server();
     test_grpc().await;
     for query in JRPC_QUERIES {
-        test_json_rpg(query, JSON_RPC_ADDR_2);
+        test_json_rpg(query, JSON_RPC_ADDR);
     }
     test_json_rpg(JRPC_QUERIES[0], JSON_RPC_ADDR_2)
 }

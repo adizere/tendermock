@@ -6,6 +6,7 @@
 //!
 //! To integrate with IBC modules, the node implements the `ICS26Context` traits, which mainly deal
 //! with storing and reading values from the store.
+#![allow(unused_variables)] // lot of todos...
 use crate::chain::Chain;
 use crate::config::Config;
 use crate::store::{InMemoryStore, Storage};
@@ -15,9 +16,15 @@ use ibc::ics02_client::context::{ClientKeeper, ClientReader};
 use ibc::ics02_client::error::{Error as ClientError, Kind as ClientErrorKind};
 use ibc::ics03_connection::connection::ConnectionEnd;
 use ibc::ics03_connection::context::{ConnectionKeeper, ConnectionReader};
-use ibc::ics03_connection::error::{Error as ConnectionError, Kind as ConnectionErrorKind};
+use ibc::ics03_connection::error::Error as ConnectionError;
+use ibc::ics03_connection::version::Version;
+use ibc::ics04_channel::channel::ChannelEnd;
+use ibc::ics04_channel::context::{ChannelKeeper, ChannelReader};
+use ibc::ics04_channel::error::Error as ChannelError;
+use ibc::ics05_port::capabilities::Capability;
+use ibc::ics05_port::context::PortReader;
 use ibc::ics23_commitment::commitment::CommitmentPrefix;
-use ibc::ics24_host::identifier::{ClientId, ConnectionId};
+use ibc::ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId};
 use ibc::ics26_routing::context::ICS26Context;
 use ibc::Height;
 use ibc_proto::ibc::core::connection::v1::ConnectionEnd as RawConnectionEnd;
@@ -152,7 +159,7 @@ impl<S: Storage> Node<S> {
         SyncInfo {
             latest_block_hash: hash,
             latest_app_hash: tendermint::AppHash::try_from(vec![61 as u8; 32]).unwrap(),
-            latest_block_height: (latest_block_height.version_height as u32).into(),
+            latest_block_height: (latest_block_height.revision_height as u32).into(),
             latest_block_time: block.signed_header.header.time,
             catching_up: false,
         }
@@ -192,6 +199,10 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         let value = store.get(0, path.as_bytes())?;
         let consensus_state = AnyConsensusState::decode(value.as_slice());
         consensus_state.ok()
+    }
+
+    fn client_counter(&self) -> u64 {
+        todo!();
     }
 }
 
@@ -250,6 +261,10 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         store.set(path.into_bytes(), buffer);
         Ok(())
     }
+
+    fn increase_client_counter(&mut self) {
+        todo!();
+    }
 }
 
 impl<S: Storage> ConnectionKeeper for SharedNode<S> {
@@ -284,6 +299,10 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
             .push(connection_id.as_str().to_owned());
         store.set(path.into_bytes(), connection_id.as_bytes().to_owned());
         Ok(())
+    }
+
+    fn next_connection_id(&mut self) -> ConnectionId {
+        todo!();
     }
 }
 
@@ -327,20 +346,113 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
     }
 
     // TODO: what is the correct version format?
-    fn get_compatible_versions(&self) -> Vec<String> {
-        vec![String::from("0.0.1")]
+    fn get_compatible_versions(&self) -> Vec<Version> {
+        vec![Version::default()]
     }
 
     // TODO: what if there is no compatible versions?
     fn pick_version(
         &self,
-        _supported_versions: Vec<String>,
-        counterparty_candidate_versions: Vec<String>,
-    ) -> Result<String, ConnectionError> {
+        _supported_versions: Vec<Version>,
+        counterparty_candidate_versions: Vec<Version>,
+    ) -> Option<Version> {
         match counterparty_candidate_versions.get(0) {
-            Some(version) => Ok(version.to_owned()),
-            None => Err(ConnectionErrorKind::NoCommonVersion.into()),
+            Some(version) => Some(version.to_owned()),
+            None => None,
         }
+    }
+}
+
+impl<S: Storage> ChannelKeeper for SharedNode<S> {
+    fn next_channel_id(&mut self) -> ChannelId {
+        todo!();
+    }
+
+    fn store_connection_channels(
+        &mut self,
+        conn_id: &ConnectionId,
+        port_channel_id: &(PortId, ChannelId),
+    ) -> Result<(), ChannelError> {
+        todo!();
+    }
+
+    fn store_channel(
+        &mut self,
+        port_channel_id: &(PortId, ChannelId),
+        channel_end: &ChannelEnd,
+    ) -> Result<(), ChannelError> {
+        todo!();
+    }
+
+    fn store_next_sequence_send(
+        &mut self,
+        port_channel_id: &(PortId, ChannelId),
+        seq: u64,
+    ) -> Result<(), ChannelError> {
+        todo!();
+    }
+
+    fn store_next_sequence_recv(
+        &mut self,
+        port_channel_id: &(PortId, ChannelId),
+        seq: u64,
+    ) -> Result<(), ChannelError> {
+        todo!();
+    }
+
+    fn store_next_sequence_ack(
+        &mut self,
+        port_channel_id: &(PortId, ChannelId),
+        seq: u64,
+    ) -> Result<(), ChannelError> {
+        todo!();
+    }
+}
+
+impl<S: Storage> ChannelReader for SharedNode<S> {
+    fn channel_end(&self, port_channel_id: &(PortId, ChannelId)) -> Option<ChannelEnd> {
+        todo!();
+    }
+
+    fn connection_end(&self, connection_id: &ConnectionId) -> Option<ConnectionEnd> {
+        todo!();
+    }
+
+    fn connection_channels(&self, cid: &ConnectionId) -> Option<Vec<(PortId, ChannelId)>> {
+        todo!();
+    }
+
+    fn channel_client_state(
+        &self,
+        port_channel_id: &(PortId, ChannelId),
+    ) -> Option<AnyClientState> {
+        todo!();
+    }
+
+    fn channel_client_consensus_state(
+        &self,
+        port_channel_id: &(PortId, ChannelId),
+        height: Height,
+    ) -> Option<AnyConsensusState> {
+        todo!();
+    }
+
+    fn port_capability(&self, port_id: &PortId) -> Option<Capability> {
+        todo!();
+    }
+
+    fn capability_authentification(&self, port_id: &PortId, cap: &Capability) -> bool {
+        todo!();
+    }
+}
+
+impl<S: Storage> PortReader for SharedNode<S> {
+    fn lookup_module_by_port(&self, port_id: &PortId) -> Option<Capability> {
+        todo!();
+    }
+
+    fn autenthenticate(&self, key: &Capability, port_id: &PortId) -> bool {
+        todo!();
     }
 }
 

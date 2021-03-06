@@ -5,6 +5,7 @@ use crate::logger::Log;
 use crate::node;
 use crate::store::Storage;
 use ibc_proto::cosmos::staking::v1beta1;
+use tonic::{Status, Response, Request};
 use ibc_proto::cosmos::staking::v1beta1::query_server::{Query, QueryServer};
 
 pub fn get_service<S: 'static + Storage + Sync + Send>(
@@ -33,8 +34,8 @@ impl<S: Storage> QueryService<S> {
 impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
     async fn validator(
         &self,
-        request: tonic::Request<v1beta1::QueryValidatorRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryValidatorResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryValidatorRequest>,
+    ) -> Result<Response<v1beta1::QueryValidatorResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/validator {:?}", request);
         }
@@ -43,8 +44,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn validators(
         &self,
-        request: tonic::Request<v1beta1::QueryValidatorsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryValidatorsResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryValidatorsRequest>,
+    ) -> Result<Response<v1beta1::QueryValidatorsResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/validators {:?}", request);
         }
@@ -53,8 +54,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn validator_delegations(
         &self,
-        request: tonic::Request<v1beta1::QueryValidatorDelegationsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryValidatorDelegationsResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryValidatorDelegationsRequest>,
+    ) -> Result<Response<v1beta1::QueryValidatorDelegationsResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/validator_delegations {:?}", request);
         }
@@ -63,8 +64,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn validator_unbonding_delegations(
         &self,
-        request: tonic::Request<v1beta1::QueryValidatorUnbondingDelegationsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryValidatorUnbondingDelegationsResponse>, tonic::Status>
+        request: Request<v1beta1::QueryValidatorUnbondingDelegationsRequest>,
+    ) -> Result<Response<v1beta1::QueryValidatorUnbondingDelegationsResponse>, Status>
     {
         if self.verbose {
             log!(
@@ -78,8 +79,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn delegation(
         &self,
-        request: tonic::Request<v1beta1::QueryDelegationRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryDelegationResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryDelegationRequest>,
+    ) -> Result<Response<v1beta1::QueryDelegationResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/delegation {:?}", request);
         }
@@ -88,8 +89,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn unbonding_delegation(
         &self,
-        request: tonic::Request<v1beta1::QueryUnbondingDelegationRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryUnbondingDelegationResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryUnbondingDelegationRequest>,
+    ) -> Result<Response<v1beta1::QueryUnbondingDelegationResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/unbounding_delegation {:?}", request);
         }
@@ -98,8 +99,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn delegator_validator(
         &self,
-        request: tonic::Request<v1beta1::QueryDelegatorValidatorRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryDelegatorValidatorResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryDelegatorValidatorRequest>,
+    ) -> Result<Response<v1beta1::QueryDelegatorValidatorResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/delegator_validator {:?}", request);
         }
@@ -108,8 +109,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn delegator_delegations(
         &self,
-        request: tonic::Request<v1beta1::QueryDelegatorDelegationsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryDelegatorDelegationsResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryDelegatorDelegationsRequest>,
+    ) -> Result<Response<v1beta1::QueryDelegatorDelegationsResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/delegator_delegations {:?}", request);
         }
@@ -118,8 +119,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn delegator_unbonding_delegations(
         &self,
-        request: tonic::Request<v1beta1::QueryDelegatorUnbondingDelegationsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryDelegatorUnbondingDelegationsResponse>, tonic::Status>
+        request: Request<v1beta1::QueryDelegatorUnbondingDelegationsRequest>,
+    ) -> Result<Response<v1beta1::QueryDelegatorUnbondingDelegationsResponse>, Status>
     {
         if self.verbose {
             log!(
@@ -133,8 +134,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn redelegations(
         &self,
-        request: tonic::Request<v1beta1::QueryRedelegationsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryRedelegationsResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryRedelegationsRequest>,
+    ) -> Result<Response<v1beta1::QueryRedelegationsResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/redelegations {:?}", request);
         }
@@ -143,8 +144,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn delegator_validators(
         &self,
-        request: tonic::Request<v1beta1::QueryDelegatorValidatorsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryDelegatorValidatorsResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryDelegatorValidatorsRequest>,
+    ) -> Result<Response<v1beta1::QueryDelegatorValidatorsResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/delegator_validators {:?}", request);
         }
@@ -153,8 +154,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn historical_info(
         &self,
-        request: tonic::Request<v1beta1::QueryHistoricalInfoRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryHistoricalInfoResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryHistoricalInfoRequest>,
+    ) -> Result<Response<v1beta1::QueryHistoricalInfoResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/historical_info {:?}", request);
         }
@@ -163,8 +164,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn pool(
         &self,
-        request: tonic::Request<v1beta1::QueryPoolRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryPoolResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryPoolRequest>,
+    ) -> Result<Response<v1beta1::QueryPoolResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/pool   {:?}", request);
         }
@@ -173,8 +174,8 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
 
     async fn params(
         &self,
-        request: tonic::Request<v1beta1::QueryParamsRequest>,
-    ) -> Result<tonic::Response<v1beta1::QueryParamsResponse>, tonic::Status> {
+        request: Request<v1beta1::QueryParamsRequest>,
+    ) -> Result<Response<v1beta1::QueryParamsResponse>, Status> {
         if self.verbose {
             log!(Log::GRPC, "/staking/params {:?}", request);
         }
@@ -187,6 +188,6 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
                 unbonding_time: Some(std::time::Duration::new(3600 * 24 * 30, 0).into()),
             }),
         };
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(response))
     }
 }

@@ -45,10 +45,9 @@ fn new_client_state(config: &Config) -> AnyClientState {
         max_clock_drift: duration,
         frozen_height: height.clone(),
         latest_height: height,
-        upgrade_path: String::from("path"),
+        upgrade_path: vec![String::from("path")],
         allow_update_after_expiry: false,
         allow_update_after_misbehaviour: false,
-        consensus_params: config.consensus_params.clone(),
     };
     AnyClientState::Tendermint(client_state)
 }
