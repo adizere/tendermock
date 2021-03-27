@@ -90,8 +90,10 @@ impl Tendermock {
             log!(Log::Chain, "Warning: no interface configured");
         }
         for (jrpc_addr, grpc_addr) in &self.interfaces {
-            log!(Log::GRPC, "Listening on: {}", &grpc_addr);
-            log!(Log::JRPC, "Listening on: {}", &jrpc_addr);
+            if self.verbose {
+                log!(Log::GRPC, "Listening on: {}", &grpc_addr);
+                log!(Log::JRPC, "Listening on: {}", &jrpc_addr);
+            }
             let jrpc_server = jrpc::serve(node.clone(), self.verbose, jrpc_addr.clone());
             let grpc_server = grpc::serve(node.clone(), self.verbose, grpc_addr.clone());
             jrpc_servers.push(jrpc_server);
@@ -126,7 +128,7 @@ async fn schedule_growth<S: store::Storage>(
         return Ok(());
     }
     loop {
-        tokio::time::delay_for(std::time::Duration::from_secs(interval)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(interval)).await;
         let node_ref = node.write();
         node_ref.get_chain().grow();
         drop(node_ref);

@@ -57,7 +57,7 @@ fn default_params() -> tendermint::consensus::Params {
             max_gas: 1000,
         },
         evidence: tendermint::evidence::Params {
-            max_num: 10000,
+            max_bytes: 10000,
             max_age_duration: tendermint::evidence::Duration(std::time::Duration::from_secs(3600)),
             max_age_num_blocks: 10000,
         },

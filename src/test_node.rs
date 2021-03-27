@@ -13,7 +13,6 @@ mod tests {
     use ibc::ics23_commitment::commitment::CommitmentRoot;
     use ibc::ics24_host::identifier::ClientId;
     use tendermint;
-    use tendermint::consensus::Params;
     use tendermint::trust_threshold::TrustThresholdFraction;
 
     use crate::config;
@@ -69,26 +68,9 @@ mod tests {
             max_clock_drift: duration,
             frozen_height: height.clone(),
             latest_height: height,
-            upgrade_path: String::from("path"),
+            upgrade_path: vec![String::from("path")],
             allow_update_after_expiry: false,
             allow_update_after_misbehaviour: false,
-            consensus_params: Params {
-                version: None,
-                block: tendermint::block::Size {
-                    max_bytes: 10000,
-                    max_gas: 10000,
-                },
-                evidence: tendermint::evidence::Params {
-                    max_num: 10000,
-                    max_age_duration: tendermint::evidence::Duration(
-                        std::time::Duration::from_secs(3600),
-                    ),
-                    max_age_num_blocks: 10000,
-                },
-                validator: tendermint::consensus::params::ValidatorParams {
-                    pub_key_types: vec![],
-                },
-            },
         };
         AnyClientState::Tendermint(client_state)
     }
