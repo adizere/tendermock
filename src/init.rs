@@ -4,16 +4,18 @@
 //! interface.
 //!
 //! The initial values are taken fron the configuration (see `config` module).
-use crate::config::{Client, Config};
-use ibc::ics02_client::client_def::AnyClientState;
-use ibc::ics02_client::client_type::ClientType;
-use ibc::ics02_client::context::ClientKeeper;
-use ibc::ics07_tendermint::client_state::ClientState;
-use ibc::ics24_host::identifier::ClientId;
-use ibc::Height;
 use std::str::FromStr;
+
+use ibc::{Height,
+          ics02_client::client_def::AnyClientState,
+          ics02_client::client_type::ClientType,
+          ics02_client::context::ClientKeeper,
+          ics07_tendermint::client_state::ClientState,
+          ics24_host::identifier::ClientId};
 use tendermint;
 use tendermint::trust_threshold::TrustThresholdFraction;
+
+use crate::config::{Client, Config};
 
 /// Initialize the client keeper by registering all the client present in the configuration.
 pub fn init<T: ClientKeeper>(keeper: &mut T, config: &Config) {

@@ -42,4 +42,3 @@ fn main() {
     }
     tendermock.start();
 }
-

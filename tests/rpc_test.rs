@@ -68,7 +68,8 @@ fn test_json_rpg(query: &str, jrpc_addr: &str) {
         .stdout
         .unwrap();
 
-    let object_raw: serde_json::error::Result<serde_json::Value> = serde_json::from_reader(json_response);
+    let object_raw: serde_json::error::Result<serde_json::Value> =
+        serde_json::from_reader(json_response);
     assert!(object_raw.is_ok());
 
     let object = object_raw.unwrap();
@@ -79,7 +80,7 @@ fn test_json_rpg(query: &str, jrpc_addr: &str) {
     let res = obj_kv.get("result");
     assert!(res.is_some());
     let res_inner = res.unwrap();
-    assert_ne!(res_inner.is_null(), true);  // Shouldn't have a 'null' here.
+    assert_ne!(res_inner.is_null(), true); // Shouldn't have a 'null' here.
 
     // Check the 'error' field
     assert_ne!(obj_kv.contains_key("error"), true); // Shouldn't have an 'error'.

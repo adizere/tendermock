@@ -7,8 +7,8 @@
 //! fields to the `Config` structs.
 //!
 //! The deserialization uses `serde` and `serde_json` to define and parse json config files.
-use serde_json;
 use serde::Deserialize;
+use serde_json;
 use std::fs;
 use std::path::Path;
 use tendermint;

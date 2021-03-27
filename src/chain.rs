@@ -2,12 +2,14 @@
 //!
 //! This modules defines the tendermock chain. The chain is a vector of light blocks, which are
 //! stripped down versions of 'real' tendermint blocks.
-use crate::store::Storage;
-use ibc::Height;
 use std::sync::RwLock;
+
+use ibc::Height;
 use tendermint::Block as TMBlock;
-use tendermint_testgen::light_block::TMLightBlock;
 use tendermint_testgen::{Generator, LightBlock};
+use tendermint_testgen::light_block::TMLightBlock;
+
+use crate::store::Storage;
 
 pub struct Chain<S: Storage> {
     blocks: RwLock<Blocks>,
@@ -120,8 +122,9 @@ pub fn to_full_block(light_block: TMLightBlock) -> TMBlock {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use crate::store::InMemoryStore;
+
+    use super::*;
 
     #[test]
     fn chain() {

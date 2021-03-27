@@ -206,7 +206,11 @@ where
         mut state: Self,
     ) -> JrpcResult<BroadcastTxCommitResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/broadcast_tx_commit {{ tx: {} bytes }}", req.tx.as_bytes().len());
+            log!(
+                Log::JRPC,
+                "/broadcast_tx_commit {{ tx: {} bytes }}",
+                req.tx.as_bytes().len()
+            );
         }
         // Grow chain
         let node = state.node.write();

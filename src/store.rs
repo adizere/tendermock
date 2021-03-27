@@ -1,23 +1,32 @@
 //! # Store
 //!
 //! A storage for tendermock. For now the only available storage is the `InMemoryStore`, which ,as
-//! its name implies, is not persisted to the hard drive. However, possible implementation of
+//! its name implies, is not persisted to the hard drive. However, implementations of
 //! persistent storage are possible without impacting the rest of the code base as it only relies
 //! on the `Storage` trait, which may be implemented for new kinds of storage in the future.
 //!
 //! A storage has two jobs:
-//!  - persist the state of commited blocks.
-//!  - updating the state of the pending block.
-use crate::avl::AvlTree;
+//!  - persist the state of committed blocks, via the `grow` API.
+//!  - update the state of the pending block and access the state for any block,
+//!     via a `get` and `set` API.
 use std::sync::RwLock;
+
+use crate::avl::AvlTree;
 
 /// A concurrent, on chain storage using interior mutability.
 pub trait Storage: std::fmt::Debug {
     /// Set a value in the store at the last (pending) height.
+    /// The storage starts up by having height 1 committed (or stable); consequently the mutable
+    /// (pending) height in the beginning is 2.
     fn set(&self, path: Vec<u8>, value: Vec<u8>);
-    /// Return None if there is no block matching `height`.
+
+    /// Access the value at a given path and height.
+    /// Returns `None` if no block matches `height`.
+    /// If height = 0, then it accesses the store for the last committed block (initially, this is
+    /// height 1).
     fn get(&self, height: u64, path: &[u8]) -> Option<Vec<u8>>;
-    /// Freeze the pending store by adding it to the commited chain and create a new pending.
+
+    /// Freeze the pending store by adding it to the committed chain and create a new pending.
     fn grow(&self);
 }
 
@@ -28,9 +37,12 @@ pub struct InMemoryStore {
 }
 
 impl InMemoryStore {
+    /// The store starts out by comprising the state of a single committed block, the genesis
+    /// block, at height 1. The pending block is on top of that at height 2.
     pub fn new() -> Self {
         let genesis = AvlTree::new();
         let pending = genesis.clone();
+
         InMemoryStore {
             store: RwLock::new(vec![genesis]),
             pending: RwLock::new(pending),
@@ -41,12 +53,20 @@ impl InMemoryStore {
 impl std::fmt::Debug for InMemoryStore {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let store = self.store.read().unwrap();
+        let pending = self.pending.read().unwrap();
         let keys = store.last().unwrap().get_keys();
+
         write!(
             f,
-            "InMemoryStore {{ height: {}, keys: [{}] }}",
+            "InMemoryStore {{ height: {}, keys: [{}] \n\tpending: [{}] }}",
             store.len(),
             keys.iter()
+                .map(|k| String::from_utf8_lossy(k).into_owned())
+                .collect::<Vec<String>>()
+                .join(", "),
+            pending
+                .get_keys()
+                .iter()
                 .map(|k| String::from_utf8_lossy(k).into_owned())
                 .collect::<Vec<String>>()
                 .join(", ")
@@ -60,19 +80,21 @@ impl Storage for InMemoryStore {
         store.insert(path, value);
     }
 
-    /// Three cases:
-    ///  - height = 0 -> last commited block
-    ///  - height - 1 < store.len() -> the block n° (height-1)
-    ///  - height - 1 == store.len() -> the pending block
+    /// Implementation details: three cases:
+    ///  - height = 0 -> access the store for the last __committed__ block (initially, height 1);
+    ///  - height - 1 < store.len() -> access the block n° (height-1);
+    ///  - height - 1 == store.len() -> access the pending block.
     fn get(&self, height: u64, path: &[u8]) -> Option<Vec<u8>> {
         let store = self.store.read().unwrap();
+
         if height == 0 {
-            // Access last commited block
+            // Access the last committed block
             return store.last().unwrap().get(path).cloned();
         }
+
         let h = (height - 1) as usize;
         if h < store.len() {
-            // Access one of the commited blocks
+            // Access one of the committed blocks
             let state = store.get(h).unwrap();
             state.get(path).cloned()
         } else if h == store.len() {
@@ -105,15 +127,20 @@ mod tests {
 
     fn test_with_store<T: Storage>(store: T) {
         let data = b"hello";
-        let path = b"foo/bar";
-        let data = &data[..];
-        let path = &path[..];
+        let path_bar = b"foo/bar";
+        let path_baz = b"foo/baz";
 
-        assert_eq!(store.get(0, path), None);
-        store.set(path.to_vec(), data.to_vec()); // Set value on pending block (height 2 here)
-        assert_eq!(store.get(0, path), None);
-        assert_eq!(store.get(2, path), Some(data.to_vec()));
-        store.grow(); // Commit value, will be seen as "last block" (height 0)
-        assert_eq!(store.get(0, path), Some(data.to_vec()));
+        assert_eq!(store.get(0, path_bar), None);
+        assert_eq!(store.get(1000, path_bar), None);
+
+        store.set(path_bar.to_vec(), data.to_vec()); // Set value on pending block (height 2)
+        assert_eq!(store.get(0, path_bar), None);
+        assert_eq!(store.get(2, path_bar), Some(data.to_vec()));
+
+        store.grow(); // Commit value, will be seen as "last block" (height 2, or 0)
+        store.set(path_baz.to_vec(), data.to_vec());
+
+        store.grow(); // Commit value into block height 3
+        assert_eq!(store.get(3, path_baz), Some(data.to_vec()));
     }
 }

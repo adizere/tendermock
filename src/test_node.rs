@@ -1,8 +1,10 @@
 //! Tests for a tendermock node.
 #[cfg(test)]
 mod tests {
-    use crate::config;
-    use crate::node::*;
+    use std::convert::TryInto;
+    use std::str::FromStr;
+
+    use ibc::Height;
     use ibc::ics02_client::client_def::{AnyClientState, AnyConsensusState};
     use ibc::ics02_client::client_type::ClientType;
     use ibc::ics02_client::context::{ClientKeeper, ClientReader};
@@ -10,12 +12,12 @@ mod tests {
     use ibc::ics07_tendermint::consensus_state::ConsensusState;
     use ibc::ics23_commitment::commitment::CommitmentRoot;
     use ibc::ics24_host::identifier::ClientId;
-    use ibc::Height;
-    use std::convert::TryInto;
-    use std::str::FromStr;
     use tendermint;
     use tendermint::consensus::Params;
     use tendermint::trust_threshold::TrustThresholdFraction;
+
+    use crate::config;
+    use crate::node::*;
 
     #[test]
     /// Test storage and retrieval of client and consensus states.

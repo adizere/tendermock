@@ -1,3 +1,4 @@
 /target
 tendermock.db
 .gdb*
+.idea*

@@ -6,32 +6,35 @@
 //!
 //! To integrate with IBC modules, the node implements the `ICS26Context` traits, which mainly deal
 //! with storing and reading values from the store.
-use crate::chain::Chain;
-use crate::config::Config;
-use crate::store::{InMemoryStore, Storage};
-use ibc::ics02_client::client_def::{AnyClientState, AnyConsensusState};
-use ibc::ics02_client::client_type::ClientType;
-use ibc::ics02_client::context::{ClientKeeper, ClientReader};
-use ibc::ics02_client::error::{Error as ClientError, Kind as ClientErrorKind};
-use ibc::ics03_connection::connection::ConnectionEnd;
-use ibc::ics03_connection::context::{ConnectionKeeper, ConnectionReader};
-use ibc::ics03_connection::error::{Error as ConnectionError, Kind as ConnectionErrorKind};
-use ibc::ics23_commitment::commitment::CommitmentPrefix;
-use ibc::ics24_host::identifier::{ClientId, ConnectionId};
-use ibc::ics26_routing::context::ICS26Context;
-use ibc::Height;
+use std::convert::TryFrom;
+use std::str::FromStr;
+
+use ibc::{
+    Height,
+    ics02_client::client_def::{AnyClientState, AnyConsensusState},
+    ics02_client::client_type::ClientType,
+    ics02_client::context::{ClientKeeper, ClientReader},
+    ics02_client::error::{Error as ClientError, Kind as ClientErrorKind},
+    ics03_connection::connection::ConnectionEnd,
+    ics03_connection::context::{ConnectionKeeper, ConnectionReader},
+    ics03_connection::error::{Error as ConnectionError, Kind as ConnectionErrorKind},
+    ics23_commitment::commitment::CommitmentPrefix,
+    ics24_host::identifier::{ClientId, ConnectionId},
+    ics26_routing::context::ICS26Context};
 use ibc_proto::ibc::core::connection::v1::ConnectionEnd as RawConnectionEnd;
 use prost::Message;
 use prost_types::Any;
 use serde::{Deserialize, Serialize};
 use serde_json;
-use std::convert::TryFrom;
-use std::str::FromStr;
-use tendermint::chain;
-use tendermint::net::Address;
-use tendermint::node;
+use tendermint::{chain,
+                 net::Address,
+                 node};
 use tendermint_proto::Protobuf;
 use tendermint_rpc::endpoint::status::SyncInfo;
+
+use crate::chain::Chain;
+use crate::config::Config;
+use crate::store::{InMemoryStore, Storage};
 
 // System constant
 const COMMITMENT_PREFIX: &'static str = "store/ibc/key";
