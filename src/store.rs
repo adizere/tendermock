@@ -1,7 +1,7 @@
 //! # Store
 //!
-//! A storage for tendermock. For now the only available storage is the `InMemoryStore`, which ,as
-//! its name implies, is not persisted to the hard drive. However, implementations of
+//! A storage for tendermock. For now the only available storage is the `InMemoryStore`, which, as
+//! its name implies, is not persisted to non-volatile memory. However, implementations of
 //! persistent storage are possible without impacting the rest of the code base as it only relies
 //! on the `Storage` trait, which may be implemented for new kinds of storage in the future.
 //!
@@ -9,6 +9,7 @@
 //!  - persist the state of committed blocks, via the `grow` API.
 //!  - update the state of the pending block and access the state for any block,
 //!     via a `get` and `set` API.
+
 use std::sync::RwLock;
 
 use crate::avl::AvlTree;

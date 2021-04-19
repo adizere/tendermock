@@ -3,7 +3,7 @@
 //! This modules initializes the storage, by inserting values into the node using the ICS26
 //! interface.
 //!
-//! The initial values are taken fron the configuration (see `config` module).
+//! The initial values are taken from the configuration (see `config` module).
 use std::str::FromStr;
 
 use ibc::{
