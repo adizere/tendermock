@@ -25,7 +25,7 @@ use crate::store;
 use super::utils::{JrpcError, JrpcFilter, JrpcResult};
 
 const PUBLICK_KEY: &str = "4A25C6640A1F72B9C975338294EF51B6D1C33158BB6ECBA69FBC3FB5A33C9DCE";
-const HASH_LENGHT: usize = 32; // tendermint::abci::transaction::hash::LENGHT is not exposed...
+const HASH_LENGTH: usize = 32; // tendermint::abci::transaction::hash::LENGHT is not exposed...
 
 /// A structure to build the JsonRPC HTTP API, see the `new` method.
 pub struct Jrpc<S: store::Storage>
@@ -249,7 +249,7 @@ where
         Ok(BroadcastTxCommitResponse {
             check_tx: tx_result.clone(),
             deliver_tx: tx_result,
-            hash: Hash::new([61; HASH_LENGHT]),
+            hash: Hash::new([61; HASH_LENGTH]),
             height: block.signed_header.header.height,
         })
     }

@@ -3,6 +3,8 @@
 	"id": "ccc84631-dfdb-4adc-b88c-5291ea3c2cfb",
 	"method": "validators",
 	"params": {
-		"height": "1"
+		"height": "1",
+		"page": "1",
+		"per_page": "30"
 	}
 }

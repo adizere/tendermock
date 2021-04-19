@@ -38,9 +38,9 @@ async fn rpc() {
     start_server();
     test_grpc().await;
     for query in JRPC_QUERIES {
-        test_json_rpg(query, JSON_RPC_ADDR);
+        test_json_rpc(query, JSON_RPC_ADDR);
     }
-    test_json_rpg(JRPC_QUERIES[0], JSON_RPC_ADDR_2)
+    test_json_rpc(JRPC_QUERIES[0], JSON_RPC_ADDR_2)
 }
 
 async fn test_grpc() {
@@ -52,7 +52,7 @@ async fn test_grpc() {
         .expect("gRPC 'param' request failed");
 }
 
-fn test_json_rpg(query: &str, jrpc_addr: &str) {
+fn test_json_rpc(query: &str, jrpc_addr: &str) {
     let json_response = Command::new("curl")
         .arg("-s")
         .arg("-X")
@@ -70,18 +70,23 @@ fn test_json_rpg(query: &str, jrpc_addr: &str) {
 
     let object_raw: serde_json::error::Result<serde_json::Value> =
         serde_json::from_reader(json_response);
-    assert!(object_raw.is_ok());
+    assert!(object_raw.is_ok(), "Failed for query {}", query);
 
     let object = object_raw.unwrap();
-    assert!(object.is_object());
+    assert!(object.is_object(), "Failed for query {}", query);
     let obj_kv = object.as_object().unwrap();
 
     // Check the 'result' field
     let res = obj_kv.get("result");
-    assert!(res.is_some());
+    assert!(res.is_some(), "Failed for query {}", query);
     let res_inner = res.unwrap();
-    assert_ne!(res_inner.is_null(), true); // Shouldn't have a 'null' here.
+    assert_ne!(res_inner.is_null(), true, "Failed for query {}", query); // Shouldn't have a 'null' here.
 
     // Check the 'error' field
-    assert_ne!(obj_kv.contains_key("error"), true); // Shouldn't have an 'error'.
+    assert_ne!(
+        obj_kv.contains_key("error"),
+        true,
+        "Failed for query {}",
+        query
+    ); // Shouldn't have an 'error'.
 }
