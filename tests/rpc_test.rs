@@ -23,7 +23,7 @@ const JRPC_QUERIES: &[&str] = &[
 
 /// Spawns a `Tendermock` instance in a separate thread.
 fn start_server() {
-    let mut node = Tendermock::new();
+    let mut node = Tendermock::default();
     node.add_interface(JSON_RPC_ADDR.parse().unwrap(), GRPC_ADDR.parse().unwrap())
         .add_interface(
             JSON_RPC_ADDR_2.parse().unwrap(),

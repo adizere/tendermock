@@ -25,8 +25,8 @@ struct Blocks {
 
 impl<S: Storage> Chain<S> {
     pub fn new(store: S) -> Self {
-        // To ease testing, the second block is always created at midnight, this fixes the second
-        // header until next midnight.
+        // To ease testing, the second block is always created at midnight. This fixes the hash of
+        // the header at height `2` for a given day (until next midnight).
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()

@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["tendermock"] = [{"text":"impl Unpin for Tendermock","synthetic":true,"types":[]}];
+implementors["tendermock"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html\" title=\"trait core::marker::Unpin\">Unpin</a> for <a class=\"struct\" href=\"tendermock/struct.Tendermock.html\" title=\"struct tendermock::Tendermock\">Tendermock</a>","synthetic":true,"types":["tendermock::builder::Tendermock"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

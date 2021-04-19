@@ -32,22 +32,22 @@ impl<S: Storage> QueryService<S> {
 
 #[tonic::async_trait]
 impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
-    async fn validator(
-        &self,
-        request: Request<v1beta1::QueryValidatorRequest>,
-    ) -> Result<Response<v1beta1::QueryValidatorResponse>, Status> {
-        if self.verbose {
-            log!(Log::Grpc, "/staking/validator {:?}", request);
-        }
-        unimplemented!();
-    }
-
     async fn validators(
         &self,
         request: Request<v1beta1::QueryValidatorsRequest>,
     ) -> Result<Response<v1beta1::QueryValidatorsResponse>, Status> {
         if self.verbose {
             log!(Log::Grpc, "/staking/validators {:?}", request);
+        }
+        unimplemented!();
+    }
+
+    async fn validator(
+        &self,
+        request: Request<v1beta1::QueryValidatorRequest>,
+    ) -> Result<Response<v1beta1::QueryValidatorResponse>, Status> {
+        if self.verbose {
+            log!(Log::Grpc, "/staking/validator {:?}", request);
         }
         unimplemented!();
     }
@@ -96,16 +96,6 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         unimplemented!();
     }
 
-    async fn delegator_validator(
-        &self,
-        request: Request<v1beta1::QueryDelegatorValidatorRequest>,
-    ) -> Result<Response<v1beta1::QueryDelegatorValidatorResponse>, Status> {
-        if self.verbose {
-            log!(Log::Grpc, "/staking/delegator_validator {:?}", request);
-        }
-        unimplemented!();
-    }
-
     async fn delegator_delegations(
         &self,
         request: Request<v1beta1::QueryDelegatorDelegationsRequest>,
@@ -146,6 +136,16 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
     ) -> Result<Response<v1beta1::QueryDelegatorValidatorsResponse>, Status> {
         if self.verbose {
             log!(Log::Grpc, "/staking/delegator_validators {:?}", request);
+        }
+        unimplemented!();
+    }
+
+    async fn delegator_validator(
+        &self,
+        request: Request<v1beta1::QueryDelegatorValidatorRequest>,
+    ) -> Result<Response<v1beta1::QueryDelegatorValidatorResponse>, Status> {
+        if self.verbose {
+            log!(Log::Grpc, "/staking/delegator_validator {:?}", request);
         }
         unimplemented!();
     }

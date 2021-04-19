@@ -7,7 +7,7 @@ use tendermock::Tendermock;
 #[clap(verbatim_doc_comment)]
 /// Tendermock - a mocked Tendermint node
 pub struct Args {
-    /// Verbode mode
+    /// Verbose mode
     #[clap(short, long)]
     pub verbose: bool,
 
@@ -33,7 +33,8 @@ fn main() {
     let args = Args::parse();
     let jrpc_addr = format!("127.0.0.1:{}", args.json_port).parse().unwrap();
     let grpc_addr = format!("127.0.0.1:{}", args.grpc_port).parse().unwrap();
-    let mut tendermock = Tendermock::new();
+
+    let mut tendermock = Tendermock::default();
     tendermock
         .verbose(args.verbose)
         .add_interface(jrpc_addr, grpc_addr)

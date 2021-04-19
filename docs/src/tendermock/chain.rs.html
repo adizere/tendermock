@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/chain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chain.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../tendermock/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/chain.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chain.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../tendermock/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -141,17 +143,22 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Chain</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This modules defines the tendermock chain. The chain is a vector of light blocks, which are</span>
 <span class="doccomment">//! stripped down versions of &#39;real&#39; tendermint blocks.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">store</span>::<span class="ident">Storage</span>;
-<span class="kw">use</span> <span class="ident">ibc</span>::<span class="ident">Height</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">RwLock</span>;
-<span class="kw">use</span> <span class="ident">tendermint</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">TMBlock</span>;
-<span class="kw">use</span> <span class="ident">tendermint_testgen</span>::<span class="ident">light_block</span>::<span class="ident">TMLightBlock</span>;
+
+<span class="kw">use</span> <span class="ident">ibc</span>::<span class="ident">Height</span>;
+<span class="kw">use</span> <span class="ident">tendermint</span>::<span class="ident">Block</span> <span class="kw">as</span> <span class="ident">TmBlock</span>;
+<span class="kw">use</span> <span class="ident">tendermint_testgen</span>::<span class="ident">light_block</span>::<span class="ident">TmLightBlock</span>;
 <span class="kw">use</span> <span class="ident">tendermint_testgen</span>::{<span class="ident">Generator</span>, <span class="ident">LightBlock</span>};
+
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">store</span>::<span class="ident">Storage</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Storage</span><span class="op">&gt;</span> {
     <span class="ident">blocks</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">Blocks</span><span class="op">&gt;</span>,
@@ -166,7 +173,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Storage</span><span class="op">&gt;</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">store</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">store</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// To ease testing, the second block is always created at midnight, this fixes the second</span>
         <span class="comment">// header until next midnight.</span>
         <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">SystemTime</span>::<span class="ident">now</span>()
@@ -189,14 +196,14 @@
     }
 
     <span class="doccomment">/// Returns a reference to the inner store.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_store</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">S</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_store</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">S</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">store</span>
     }
 
     <span class="doccomment">/// Returns the height of the chain.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The height is defined as the height of the latest validated blocks.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Height</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Height</span> {
         <span class="kw">let</span> <span class="ident">blocks</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">blocks</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>().<span class="ident">chain</span>;
         <span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="ident">blocks</span>
             .<span class="ident">last</span>()
@@ -206,7 +213,7 @@
     }
 
     <span class="doccomment">/// Returns a Tendermint Light Block or None if no block exist at that height.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">height</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TMLightBlock</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">height</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TmLightBlock</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">chain</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">blocks</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">Chain</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>::<span class="ident">get_block_at_height</span>(<span class="ident">height</span>, <span class="kw-2">&amp;</span><span class="ident">chain</span>.<span class="ident">chain</span>, <span class="kw-2">&amp;</span><span class="ident">chain</span>.<span class="ident">pending_block</span>)<span class="question-mark">?</span>;
         <span class="ident">block</span>.<span class="ident">generate</span>().<span class="ident">ok</span>()
@@ -235,12 +242,12 @@
     <span class="doccomment">/// Returns the store at a given height, where 0 means latest.</span>
     <span class="kw">fn</span> <span class="ident">get_block_at_height</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
         <span class="ident">height</span>: <span class="ident">u64</span>,
-        <span class="ident">blocks</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LightBlock</span><span class="op">&gt;</span>,
+        <span class="ident">blocks</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">LightBlock</span>],
         <span class="ident">pending</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LightBlock</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LightBlock</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">height</span> <span class="op">==</span> <span class="number">0</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LightBlock</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">height</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">blocks</span>.<span class="ident">last</span>()
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">height</span> <span class="op">==</span> (<span class="ident">blocks</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u64</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">height</span> <span class="op">=</span><span class="op">=</span> (<span class="ident">blocks</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u64</span> {
             <span class="comment">// Preview of the next (not yet validated) block</span>
             <span class="prelude-val">Some</span>(<span class="ident">pending</span>)
         } <span class="kw">else</span> {
@@ -249,8 +256,8 @@
     }
 }
 
-<span class="doccomment">/// Build a Tendermint block from a Tendermint loght block.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_full_block</span>(<span class="ident">light_block</span>: <span class="ident">TMLightBlock</span>) <span class="op">-&gt;</span> <span class="ident">TMBlock</span> {
+<span class="doccomment">/// Build a Tendermint block from a Tendermint light block.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_full_block</span>(<span class="ident">light_block</span>: <span class="ident">TmLightBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmBlock</span> {
     <span class="kw">let</span> <span class="ident">signed_header</span> <span class="op">=</span> <span class="ident">light_block</span>.<span class="ident">signed_header</span>;
     <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">tendermint</span>::<span class="ident">Block</span>::<span class="ident">new</span>(
         <span class="ident">signed_header</span>.<span class="ident">header</span>,
@@ -264,8 +271,9 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">store</span>::<span class="ident">InMemoryStore</span>;
+
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">chain</span>() {
@@ -273,16 +281,17 @@
         <span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_height</span>();
 
         <span class="comment">// Chain is expected to start at height 1 (same as Storage)</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">height</span>.<span class="ident">version_height</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">height</span>.<span class="ident">revision_height</span>, <span class="number">1</span>);
         <span class="ident">chain</span>.<span class="ident">grow</span>();
         <span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_height</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">height</span>.<span class="ident">version_height</span>, <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">height</span>.<span class="ident">revision_height</span>, <span class="number">2</span>);
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_block</span>(<span class="number">3</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">block</span>.<span class="ident">is_some</span>()); <span class="comment">// The third block is not yet valid, but we can retrieve it anyway</span>
         <span class="ident">chain</span>.<span class="ident">grow</span>();
         <span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="ident">chain</span>.<span class="ident">get_height</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">height</span>.<span class="ident">version_height</span>, <span class="number">3</span>); <span class="comment">// Now the third block is valid</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">height</span>.<span class="ident">revision_height</span>, <span class="number">3</span>); <span class="comment">// Now the third block is valid</span>
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tendermock";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tendermock"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

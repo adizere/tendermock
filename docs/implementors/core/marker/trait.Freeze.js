@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["tendermock"] = [{"text":"impl Freeze for Tendermock","synthetic":true,"types":[]}];
+implementors["tendermock"] = [{"text":"impl Freeze for <a class=\"struct\" href=\"tendermock/struct.Tendermock.html\" title=\"struct tendermock::Tendermock\">Tendermock</a>","synthetic":true,"types":["tendermock::builder::Tendermock"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

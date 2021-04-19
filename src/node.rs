@@ -71,13 +71,14 @@ impl<S: Storage> SharedNode<S> {
     }
 
     /// Grow the chain.
-    #[allow(dead_code)]
     pub fn grow(&self) {
         self.node.write().unwrap().grow();
     }
 }
 
-/// A node contains a store, a chain and some meta-data.
+/// A node contains:
+///     - a chain, plus the associated store,
+///     - and some meta-data.
 pub struct Node<S: Storage> {
     chain: Chain<S>,
     chain_id: tendermint::chain::Id,
@@ -88,7 +89,7 @@ pub struct Node<S: Storage> {
 
 impl Node<InMemoryStore> {
     pub fn new(config: &Config) -> Self {
-        // TODO: allow to pass custimized values
+        // TODO: allow to pass customized values
         let info = node::Info {
             // Node id
             id: node::Id::new([61; 20]),
