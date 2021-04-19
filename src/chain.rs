@@ -6,8 +6,8 @@ use std::sync::RwLock;
 
 use ibc::Height;
 use tendermint::Block as TMBlock;
-use tendermint_testgen::{Generator, LightBlock};
 use tendermint_testgen::light_block::TMLightBlock;
+use tendermint_testgen::{Generator, LightBlock};
 
 use crate::store::Storage;
 
@@ -93,7 +93,7 @@ impl<S: Storage> Chain<S> {
     /// Returns the store at a given height, where 0 means latest.
     fn get_block_at_height<'a>(
         height: u64,
-        blocks: &'a Vec<LightBlock>,
+        blocks: &'a [LightBlock],
         pending: &'a LightBlock,
     ) -> Option<&'a LightBlock> {
         if height == 0 {

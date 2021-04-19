@@ -20,6 +20,8 @@ use tendermint::hash::{Algorithm, Hash};
 
 mod as_bytes;
 mod proof;
+
+#[cfg(test)]
 mod tests;
 
 pub use as_bytes::AsBytes;
@@ -49,6 +51,7 @@ pub struct AvlTree<K: Ord + AsBytes, V> {
 }
 
 /// Wrap a key + value couple into a `NodeRef`.
+#[allow(clippy::unnecessary_wraps)]
 fn as_node_ref<K: Ord + AsBytes, V>(key: K, value: V) -> NodeRef<K, V>
 where
     V: Borrow<[u8]>,
@@ -68,7 +71,8 @@ where
         let hash = sha.finalize();
         let merkle_hash = Hash::from_bytes(HASH_ALGO, &Sha256::digest(&hash)).unwrap();
         let hash = Hash::from_bytes(HASH_ALGO, &hash).unwrap();
-        return AvlNode {
+
+        AvlNode {
             key,
             value,
             hash,
@@ -76,7 +80,7 @@ where
             height: 0,
             left: None,
             right: None,
-        };
+        }
     }
 
     /// The left height, or None if there is no left child.

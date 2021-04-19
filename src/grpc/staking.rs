@@ -5,8 +5,8 @@ use crate::logger::Log;
 use crate::node;
 use crate::store::Storage;
 use ibc_proto::cosmos::staking::v1beta1;
-use tonic::{Status, Response, Request};
 use ibc_proto::cosmos::staking::v1beta1::query_server::{Query, QueryServer};
+use tonic::{Request, Response, Status};
 
 pub fn get_service<S: 'static + Storage + Sync + Send>(
     node: node::SharedNode<S>,
@@ -37,7 +37,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryValidatorRequest>,
     ) -> Result<Response<v1beta1::QueryValidatorResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/validator {:?}", request);
+            log!(Log::Grpc, "/staking/validator {:?}", request);
         }
         unimplemented!();
     }
@@ -47,7 +47,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryValidatorsRequest>,
     ) -> Result<Response<v1beta1::QueryValidatorsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/validators {:?}", request);
+            log!(Log::Grpc, "/staking/validators {:?}", request);
         }
         unimplemented!();
     }
@@ -57,7 +57,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryValidatorDelegationsRequest>,
     ) -> Result<Response<v1beta1::QueryValidatorDelegationsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/validator_delegations {:?}", request);
+            log!(Log::Grpc, "/staking/validator_delegations {:?}", request);
         }
         unimplemented!();
     }
@@ -65,11 +65,10 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
     async fn validator_unbonding_delegations(
         &self,
         request: Request<v1beta1::QueryValidatorUnbondingDelegationsRequest>,
-    ) -> Result<Response<v1beta1::QueryValidatorUnbondingDelegationsResponse>, Status>
-    {
+    ) -> Result<Response<v1beta1::QueryValidatorUnbondingDelegationsResponse>, Status> {
         if self.verbose {
             log!(
-                Log::GRPC,
+                Log::Grpc,
                 "/staking/validator_unbounding_delegations {:?}",
                 request
             );
@@ -82,7 +81,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryDelegationRequest>,
     ) -> Result<Response<v1beta1::QueryDelegationResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/delegation {:?}", request);
+            log!(Log::Grpc, "/staking/delegation {:?}", request);
         }
         unimplemented!();
     }
@@ -92,7 +91,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryUnbondingDelegationRequest>,
     ) -> Result<Response<v1beta1::QueryUnbondingDelegationResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/unbounding_delegation {:?}", request);
+            log!(Log::Grpc, "/staking/unbounding_delegation {:?}", request);
         }
         unimplemented!();
     }
@@ -102,7 +101,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryDelegatorValidatorRequest>,
     ) -> Result<Response<v1beta1::QueryDelegatorValidatorResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/delegator_validator {:?}", request);
+            log!(Log::Grpc, "/staking/delegator_validator {:?}", request);
         }
         unimplemented!();
     }
@@ -112,7 +111,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryDelegatorDelegationsRequest>,
     ) -> Result<Response<v1beta1::QueryDelegatorDelegationsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/delegator_delegations {:?}", request);
+            log!(Log::Grpc, "/staking/delegator_delegations {:?}", request);
         }
         unimplemented!();
     }
@@ -120,11 +119,10 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
     async fn delegator_unbonding_delegations(
         &self,
         request: Request<v1beta1::QueryDelegatorUnbondingDelegationsRequest>,
-    ) -> Result<Response<v1beta1::QueryDelegatorUnbondingDelegationsResponse>, Status>
-    {
+    ) -> Result<Response<v1beta1::QueryDelegatorUnbondingDelegationsResponse>, Status> {
         if self.verbose {
             log!(
-                Log::GRPC,
+                Log::Grpc,
                 "/staking/delegator_unbounding_delegations {:?}",
                 request
             );
@@ -137,7 +135,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryRedelegationsRequest>,
     ) -> Result<Response<v1beta1::QueryRedelegationsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/redelegations {:?}", request);
+            log!(Log::Grpc, "/staking/redelegations {:?}", request);
         }
         unimplemented!();
     }
@@ -147,7 +145,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryDelegatorValidatorsRequest>,
     ) -> Result<Response<v1beta1::QueryDelegatorValidatorsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/delegator_validators {:?}", request);
+            log!(Log::Grpc, "/staking/delegator_validators {:?}", request);
         }
         unimplemented!();
     }
@@ -157,7 +155,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryHistoricalInfoRequest>,
     ) -> Result<Response<v1beta1::QueryHistoricalInfoResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/historical_info {:?}", request);
+            log!(Log::Grpc, "/staking/historical_info {:?}", request);
         }
         unimplemented!();
     }
@@ -167,7 +165,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryPoolRequest>,
     ) -> Result<Response<v1beta1::QueryPoolResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/pool   {:?}", request);
+            log!(Log::Grpc, "/staking/pool   {:?}", request);
         }
         unimplemented!();
     }
@@ -177,7 +175,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryParamsRequest>,
     ) -> Result<Response<v1beta1::QueryParamsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/staking/params {:?}", request);
+            log!(Log::Grpc, "/staking/params {:?}", request);
         }
         let response = v1beta1::QueryParamsResponse {
             params: Some(v1beta1::Params {

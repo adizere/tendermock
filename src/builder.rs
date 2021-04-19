@@ -14,7 +14,6 @@ use crate::store;
 
 use futures::future::try_join_all;
 use futures::try_join;
-use tokio;
 
 use std::net::SocketAddr;
 use std::path::Path;
@@ -91,11 +90,11 @@ impl Tendermock {
         }
         for (jrpc_addr, grpc_addr) in &self.interfaces {
             if self.verbose {
-                log!(Log::GRPC, "Listening on: {}", &grpc_addr);
-                log!(Log::JRPC, "Listening on: {}", &jrpc_addr);
+                log!(Log::Grpc, "Listening on: {}", &grpc_addr);
+                log!(Log::Jrpc, "Listening on: {}", &jrpc_addr);
             }
-            let jrpc_server = jrpc::serve(node.clone(), self.verbose, jrpc_addr.clone());
-            let grpc_server = grpc::serve(node.clone(), self.verbose, grpc_addr.clone());
+            let jrpc_server = jrpc::serve(node.clone(), self.verbose, *jrpc_addr);
+            let grpc_server = grpc::serve(node.clone(), self.verbose, *grpc_addr);
             jrpc_servers.push(jrpc_server);
             grpc_servers.push(grpc_server);
         }
@@ -111,6 +110,12 @@ impl Tendermock {
                 )
             })
             .unwrap();
+    }
+}
+
+impl Default for Tendermock {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

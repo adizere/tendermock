@@ -2,8 +2,8 @@
 use ibc::ics26_routing::handler::deliver;
 use ibc_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use prost::Message;
-use tendermint::abci::{transaction::Hash, Code, Info};
 use tendermint::abci::responses::Codespace;
+use tendermint::abci::{transaction::Hash, Code, Info};
 use tendermint_rpc::endpoint::{
     abci_info::Request as AbciInfoRequest, abci_info::Response as AbciInfoResponse,
     abci_query::Request as AbciQueryRequest, abci_query::Response as AbciQueryResponse,
@@ -52,7 +52,7 @@ where
     node::SharedNode<S>: Sync + Send + Clone,
 {
     /// Creates a new `warp` filter that mimics Tendermint's JsonRPC HTTP API.
-    pub fn new(
+    pub fn new_mimic(
         verbose: bool,
         node: node::SharedNode<S>,
     ) -> impl warp::Filter<Extract = (String,), Error = warp::Rejection> + Clone {
@@ -72,7 +72,7 @@ where
     /// JsonRPC /block endpoint.
     fn block(req: BlockRequest, state: Self) -> JrpcResult<BlockResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/block      {:?}", req);
+            log!(Log::Jrpc, "/block      {:?}", req);
         }
         let height = match req.height {
             None => 0,
@@ -82,12 +82,12 @@ where
         let block = node
             .get_chain()
             .get_block(height)
-            .ok_or_else(|| JrpcError::InvalidRequest)?;
+            .ok_or(JrpcError::InvalidRequest)?;
         let tm_block = to_full_block(block);
         let hash = tm_block.header.hash();
         Ok(BlockResponse {
             block_id: tendermint::block::Id {
-                part_set_header: tendermint::block::parts::Header::new(1, hash.clone()).unwrap(),
+                part_set_header: tendermint::block::parts::Header::new(1, hash).unwrap(),
                 hash,
             },
             block: tm_block,
@@ -97,7 +97,7 @@ where
     /// JsonRPC /commit endpoint.
     fn commit(req: CommitRequest, state: Self) -> JrpcResult<CommitResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/commit     {:?}", req);
+            log!(Log::Jrpc, "/commit     {:?}", req);
         }
         let height = match req.height {
             None => 0,
@@ -107,7 +107,7 @@ where
         let block = node
             .get_chain()
             .get_block(height)
-            .ok_or_else(|| JrpcError::InvalidRequest)?;
+            .ok_or(JrpcError::InvalidRequest)?;
         let signed_header = block.signed_header;
         Ok(CommitResponse {
             signed_header,
@@ -116,9 +116,10 @@ where
     }
 
     /// JsonRPC /genesis endpoint.
+    #[allow(clippy::unnecessary_wraps)]
     fn genesis(req: GenesisRequest, state: Self) -> JrpcResult<GenesisResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/genesis    {:?}", req);
+            log!(Log::Jrpc, "/genesis    {:?}", req);
         }
         let node = state.node.read();
         let genesis_block = node.get_chain().get_block(1).unwrap();
@@ -136,13 +137,13 @@ where
     /// JsonRPC /validators endpoint.
     fn validators(req: ValidatorsRequest, state: Self) -> JrpcResult<ValidatorResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/validators {:?}", req);
+            log!(Log::Jrpc, "/validators {:?}", req);
         }
         let node = state.node.read();
         let block = node
             .get_chain()
             .get_block(req.height.into())
-            .ok_or_else(|| JrpcError::InvalidRequest)?;
+            .ok_or(JrpcError::InvalidRequest)?;
         let validators = block.validators.validators().clone();
         Ok(ValidatorResponse {
             block_height: block.signed_header.header.height,
@@ -151,9 +152,10 @@ where
     }
 
     /// JsonRPC /status endpoint.
+    #[allow(clippy::unnecessary_wraps)]
     fn status(req: StatusRequest, state: Self) -> JrpcResult<StatusResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/status     {:?}", req);
+            log!(Log::Jrpc, "/status     {:?}", req);
         }
         let node = state.node.read();
         let node_info = node.get_info().clone();
@@ -164,7 +166,7 @@ where
                 &hex::decode(PUBLICK_KEY).unwrap(),
             )
             .unwrap(),
-            voting_power: (1 as u32).into(),
+            voting_power: (1_u32).into(),
             proposer_priority: 1.into(),
         };
         Ok(StatusResponse {
@@ -175,9 +177,10 @@ where
     }
 
     /// JsonRPC /abci_info endpoint.
+    #[allow(clippy::unnecessary_wraps)]
     fn abci_info(req: AbciInfoRequest, state: Self) -> JrpcResult<AbciInfoResponse> {
         if state.verbose {
-            log!(Log::JRPC, "/abci_info  {:?}", req);
+            log!(Log::Jrpc, "/abci_info  {:?}", req);
         }
         let node = state.node.read();
         Ok(AbciInfoResponse {
@@ -186,13 +189,14 @@ where
     }
 
     /// JsonRPC /abci_query endpoint.
+    #[allow(clippy::unnecessary_wraps)]
     fn abci_query(req: AbciQueryRequest, state: Self) -> JrpcResult<AbciQueryResponse> {
         if state.verbose {
             log!(
-                Log::JRPC,
+                Log::Jrpc,
                 "/abci_query {{ path: {:?}, data: {} }}",
                 req.path,
-                String::from_utf8(req.data.clone()).unwrap_or("".to_string())
+                String::from_utf8(req.data.clone()).unwrap_or_else(|_| "".to_string())
             );
         }
         let node = state.node.read();
@@ -208,7 +212,7 @@ where
     ) -> JrpcResult<BroadcastTxCommitResponse> {
         if state.verbose {
             log!(
-                Log::JRPC,
+                Log::Jrpc,
                 "/broadcast_tx_commit {{ tx: {} bytes }}",
                 req.tx.as_bytes().len()
             );
@@ -224,7 +228,7 @@ where
         let tx_raw = TxRaw::decode(&*data).map_err(|_| JrpcError::InvalidRequest)?;
         let tx_body = TxBody::decode(&*tx_raw.body_bytes).map_err(|_| JrpcError::InvalidRequest)?;
         deliver(&mut state.node, tx_body.messages).map_err(|e| {
-            log!(Log::JRPC, "deliver error: '{}'", e);
+            log!(Log::Jrpc, "deliver error: '{}'", e);
             JrpcError::ServerError
         })?;
 

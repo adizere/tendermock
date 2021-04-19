@@ -6,13 +6,11 @@
 //! The initial values are taken fron the configuration (see `config` module).
 use std::str::FromStr;
 
-use ibc::{Height,
-          ics02_client::client_def::AnyClientState,
-          ics02_client::client_type::ClientType,
-          ics02_client::context::ClientKeeper,
-          ics07_tendermint::client_state::ClientState,
-          ics24_host::identifier::ClientId};
-use tendermint;
+use ibc::{
+    ics02_client::client_def::AnyClientState, ics02_client::client_type::ClientType,
+    ics02_client::context::ClientKeeper, ics07_tendermint::client_state::ClientState,
+    ics24_host::identifier::ClientId, Height,
+};
 use tendermint::trust_threshold::TrustThresholdFraction;
 
 use crate::config::{Client, Config};
@@ -25,8 +23,8 @@ pub fn init<T: ClientKeeper>(keeper: &mut T, config: &Config) {
 }
 
 fn add_client<T: ClientKeeper>(keeper: &mut T, client: &Client, config: &Config) {
-    let client_id =
-        ClientId::from_str(&client.id).expect(&format!("Invalid client id: {}", &client.id));
+    let client_id = ClientId::from_str(&client.id)
+        .unwrap_or_else(|_| panic!("Invalid client id: {}", &client.id));
     let client_state = new_client_state(config);
     keeper
         .store_client_state(client_id.clone(), client_state)
@@ -41,11 +39,11 @@ fn new_client_state(config: &Config) -> AnyClientState {
     let height = Height::new(1, 1);
     let client_state = ClientState {
         chain_id: String::from(&config.chain_id),
-        trusting_period: duration.clone(),
+        trusting_period: duration,
         trust_level: TrustThresholdFraction::new(1, 3).unwrap(),
-        unbonding_period: duration.clone(),
+        unbonding_period: duration,
         max_clock_drift: duration,
-        frozen_height: height.clone(),
+        frozen_height: height,
         latest_height: height,
         upgrade_path: vec![String::from("path")],
         allow_update_after_expiry: false,

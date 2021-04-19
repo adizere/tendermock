@@ -5,7 +5,7 @@
 //!
 //! ```ignore
 //! # Doctest ignored as I can't figure out how to bring the macro in scope...
-//! log!(Log::JRPC, "query: {}", "/example");
+//! log!(Log::Jrpc, "query: {}", "/example");
 //! ```
 
 use chrono::Utc;
@@ -13,19 +13,19 @@ use colored::*;
 
 /// The list of entitites that can emit logs.
 pub enum Log {
-    JRPC,
-    GRPC,
+    Jrpc,
+    Grpc,
     Chain,
     Websocket,
 }
 
 impl Log {
-    pub fn as_str(self) -> ColoredString {
+    pub fn to_colored_string(&self) -> ColoredString {
         match self {
             Log::Websocket => "[Websocket]".cyan(),
-            Log::JRPC => "[JsonRPC]".yellow(),
+            Log::Jrpc => "[JsonRPC]".yellow(),
             Log::Chain => "[Chain]".magenta(),
-            Log::GRPC => "[gRPC]".green(),
+            Log::Grpc => "[gRPC]".green(),
         }
     }
 }
@@ -40,9 +40,9 @@ pub fn now() -> ColoredString {
 macro_rules! log {
     ($logger:expr, $str:expr, $($params:expr),*) => {
         let fmt_str = format!($str, $($params,)*);
-        println!("{} {:>11} {}",crate::logger::now(),$logger.as_str(), fmt_str);
+        println!("{} {:>11} {}",crate::logger::now(),$logger.to_colored_string(), fmt_str);
     };
     ($logger:expr, $str:expr) => {
-        println!("{} {:>11} {}", crate::logger::now(), $logger.as_str(), $str);
+        println!("{} {:>11} {}", crate::logger::now(), $logger.to_colored_string(), $str);
     };
 }

@@ -1,7 +1,6 @@
 //! The Tendermock JsonRPC Websocket API.
 use futures::{SinkExt, StreamExt};
 use serde::Serialize;
-use serde_json;
 use tendermint_rpc::endpoint::subscribe::{Request, Response};
 use warp::ws::{Message, WebSocket, Ws as WarpWs};
 use warp::Filter;
@@ -14,10 +13,8 @@ pub struct Ws {}
 
 impl Ws {
     /// Creates a `warp` filter that mimics the Tendermint Websocket API.
-    pub fn new() -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
-        warp::ws()
-            .map(|ws: WarpWs| ws.on_upgrade(move |socket| handler(socket)))
-            .boxed()
+    pub fn new_mimic() -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
+        warp::ws().map(|ws: WarpWs| ws.on_upgrade(handler)).boxed()
     }
 }
 
@@ -79,7 +76,7 @@ fn handle_request(msg: &str) -> String {
 
 /// Parses the websocket message into a JsonRPC request.
 fn parse_message(msg: &str) -> JrpcResult<JrpcEnvelope> {
-    Ok(serde_json::from_str(msg).map_err(|_| JrpcError::InvalidRequest)?)
+    serde_json::from_str(msg).map_err(|_| JrpcError::InvalidRequest)
 }
 
 /// Serializes a JrpcResult into an actual JsonRPC response String.

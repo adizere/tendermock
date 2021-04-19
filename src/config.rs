@@ -8,10 +8,8 @@
 //!
 //! The deserialization uses `serde` and `serde_json` to define and parse json config files.
 use serde::Deserialize;
-use serde_json;
 use std::fs;
 use std::path::Path;
-use tendermint;
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields, default)]
@@ -31,7 +29,7 @@ pub struct Client {
 impl Config {
     pub fn load<P: AsRef<Path>>(path: P) -> Self {
         let config = fs::read_to_string(&path)
-            .expect(&format!("Could not find file: {}", path.as_ref().display()));
+            .unwrap_or_else(|_| panic!("Could not find file: {}", path.as_ref().display()));
         serde_json::from_str(&config).expect("Could not parse config file")
     }
 }

@@ -12,6 +12,7 @@
 use std::sync::RwLock;
 
 use crate::avl::AvlTree;
+use std::cmp::Ordering;
 
 /// A concurrent, on chain storage using interior mutability.
 pub trait Storage: std::fmt::Debug {
@@ -93,17 +94,19 @@ impl Storage for InMemoryStore {
         }
 
         let h = (height - 1) as usize;
-        if h < store.len() {
-            // Access one of the committed blocks
-            let state = store.get(h).unwrap();
-            state.get(path).cloned()
-        } else if h == store.len() {
-            // Access the pending blocks
-            drop(store); // Release lock
-            let pending = self.pending.read().unwrap();
-            pending.get(path).cloned()
-        } else {
-            None
+        match h.cmp(&store.len()) {
+            Ordering::Less => {
+                // Access one of the committed blocks
+                let state = store.get(h).unwrap();
+                state.get(path).cloned()
+            }
+            Ordering::Equal => {
+                // Access the pending blocks
+                drop(store); // Release lock
+                let pending = self.pending.read().unwrap();
+                pending.get(path).cloned()
+            }
+            Ordering::Greater => None,
         }
     }
 

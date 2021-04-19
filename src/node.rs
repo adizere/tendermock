@@ -33,10 +33,7 @@ use ibc_proto::ibc::core::connection::v1::ConnectionEnd as RawConnectionEnd;
 use prost::Message;
 use prost_types::Any;
 use serde::{Deserialize, Serialize};
-use serde_json;
-use tendermint::{chain,
-                 net::Address,
-                 node};
+use tendermint::{chain, net::Address, node};
 use tendermint_proto::Protobuf;
 use tendermint_rpc::endpoint::status::SyncInfo;
 
@@ -45,7 +42,7 @@ use crate::config::Config;
 use crate::store::{InMemoryStore, Storage};
 
 // System constant
-const COMMITMENT_PREFIX: &'static str = "store/ibc/key";
+const COMMITMENT_PREFIX: &str = "store/ibc/key";
 
 /// An `Arc<RwLock<>>` wrapper around a Node.
 pub struct SharedNode<S: Storage> {
@@ -162,7 +159,7 @@ impl<S: Storage> Node<S> {
         let hash = block.signed_header.header.hash();
         SyncInfo {
             latest_block_hash: hash,
-            latest_app_hash: tendermint::AppHash::try_from(vec![61 as u8; 32]).unwrap(),
+            latest_app_hash: tendermint::AppHash::try_from(vec![61_u8; 32]).unwrap(),
             latest_block_height: (latest_block_height.revision_height as u32).into(),
             latest_block_time: block.signed_header.header.time,
             catching_up: false,
@@ -233,7 +230,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
     ) -> Result<(), ClientError> {
         let path = format!("clients/{}/clientState", client_id.as_str());
         // Store the client type
-        self.store_client_type(client_id.clone(), client_state.client_type())?;
+        self.store_client_type(client_id, client_state.client_type())?;
         // Store the client state
         let data: Any = client_state.into();
         let mut buffer = Vec::new();
@@ -294,10 +291,10 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
         let path = format!("clients/{}/connections", client_id.as_str());
         let node = self.read();
         let store = node.get_store();
-        let connections = store.get(0, path.as_bytes()).unwrap_or(vec![]);
-        let connections = String::from_utf8(connections).unwrap_or(String::from(""));
-        let mut connections =
-            serde_json::from_str::<Connections>(&connections).unwrap_or(Connections::new());
+        let connections = store.get(0, path.as_bytes()).unwrap_or_default();
+        let connections = String::from_utf8(connections).unwrap_or_else(|_| String::from(""));
+        let mut connections = serde_json::from_str::<Connections>(&connections)
+            .unwrap_or_else(|_| Connections::new());
         connections
             .connections
             .push(connection_id.as_str().to_owned());

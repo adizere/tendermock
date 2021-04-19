@@ -1,10 +1,10 @@
 //! Integration tests for tendermock JsonRPC and gRPC server.
+use std::process::{Command, Stdio};
+
 use ibc_proto::cosmos::staking::v1beta1::query_client::QueryClient;
 use ibc_proto::cosmos::staking::v1beta1::QueryParamsRequest;
-use std::process::{Command, Stdio};
+
 use tendermock::Tendermock;
-use tokio;
-use tonic;
 
 const JSON_RPC_ADDR: &str = "127.0.0.1:26657";
 const JSON_RPC_ADDR_2: &str = "127.0.0.1:26658";

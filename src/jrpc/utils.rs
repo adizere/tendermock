@@ -94,7 +94,7 @@ impl<S: Send + Sync + Clone> JrpcFilter<S> {
             .and(Self::with_state(self.shared_state))
             .and_then(
                 |ctx: JrpcEnvelope, methods: SharedMethodMap<S>, state: S| async move {
-                    if &ctx.jsonrpc != JRPC_VERSION {
+                    if ctx.jsonrpc != JRPC_VERSION {
                         return Self::build_error(ctx.id, JrpcError::WrongVersion);
                     }
                     if let Some(method) = methods.get(&ctx.method) {
@@ -153,6 +153,7 @@ impl<S: Send + Sync + Clone> JrpcFilter<S> {
     }
 
     /// Build an error response from a given JrpcError.
+    #[allow(clippy::unnecessary_wraps)]
     fn build_error(id: String, error: JrpcError) -> Result<String, std::convert::Infallible> {
         let response = Self::build_response::<()>(id, Err(error));
         Ok(serde_json::to_string(&response).unwrap())

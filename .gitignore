@@ -2,3 +2,4 @@
 tendermock.db
 .gdb*
 .idea*
+*.iml

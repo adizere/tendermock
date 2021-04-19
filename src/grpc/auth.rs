@@ -39,7 +39,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryAccountRequest>,
     ) -> Result<Response<v1beta1::QueryAccountResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/auth/account {:?}", request);
+            log!(Log::Grpc, "/auth/account {:?}", request);
         }
         let base_account = v1beta1::BaseAccount {
             address: String::from("ACCOUNT_ADDRESS"),
@@ -64,7 +64,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         request: Request<v1beta1::QueryParamsRequest>,
     ) -> Result<Response<v1beta1::QueryParamsResponse>, Status> {
         if self.verbose {
-            log!(Log::GRPC, "/auth/params {:?}", request);
+            log!(Log::Grpc, "/auth/params {:?}", request);
         }
         unimplemented!()
     }

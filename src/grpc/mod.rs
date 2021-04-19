@@ -30,7 +30,7 @@ pub async fn serve<S: 'static + Storage + Sync + Send>(
         .serve(addr)
         .then(|result| async {
             if let Err(e) = result {
-                log!(Log::GRPC, "Server error: {}", e);
+                log!(Log::Grpc, "Server error: {}", e);
             }
             Ok(())
         })

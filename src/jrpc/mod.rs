@@ -15,7 +15,6 @@ pub use websockets::Ws;
 use crate::node;
 use crate::store::Storage;
 use futures::future::FutureExt;
-use warp;
 use warp::Filter as _;
 
 pub const WEBSOCKET_PATH: &str = "websocket";
@@ -26,8 +25,8 @@ pub async fn serve<S: 'static + Storage + Sync + Send>(
     verbose: bool,
     addr: std::net::SocketAddr,
 ) -> Result<(), std::convert::Infallible> {
-    let jrpc_api = warp::path::end().and(Jrpc::new(verbose, node));
-    let ws = warp::path(WEBSOCKET_PATH).and(Ws::new());
+    let jrpc_api = warp::path::end().and(Jrpc::new_mimic(verbose, node));
+    let ws = warp::path(WEBSOCKET_PATH).and(Ws::new_mimic());
     warp::serve(jrpc_api.or(ws))
         .run(addr)
         .then(|()| async { Ok(()) })

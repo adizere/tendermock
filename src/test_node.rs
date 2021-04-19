@@ -1,10 +1,11 @@
-//! Tests for a tendermock node.
+//! Tests for a Tendermock node.
+//!
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryInto;
     use std::str::FromStr;
 
-    use ibc::Height;
     use ibc::ics02_client::client_def::{AnyClientState, AnyConsensusState};
     use ibc::ics02_client::client_type::ClientType;
     use ibc::ics02_client::context::{ClientKeeper, ClientReader};
@@ -12,7 +13,7 @@ mod tests {
     use ibc::ics07_tendermint::consensus_state::ConsensusState;
     use ibc::ics23_commitment::commitment::CommitmentRoot;
     use ibc::ics24_host::identifier::ClientId;
-    use tendermint;
+    use ibc::Height;
     use tendermint::trust_threshold::TrustThresholdFraction;
 
     use crate::config;
@@ -32,7 +33,7 @@ mod tests {
             .unwrap();
         node.store_client_state(client_id.clone(), client_state.clone())
             .unwrap();
-        node.store_consensus_state(client_id.clone(), height.clone(), consensus_state.clone())
+        node.store_consensus_state(client_id.clone(), height, consensus_state.clone())
             .unwrap();
         println!("{:?}", node.read().get_store());
         node.grow();
@@ -62,11 +63,11 @@ mod tests {
         let height = Height::new(1, 1);
         let client_state = ClientState {
             chain_id: String::from("test_chain"),
-            trusting_period: duration.clone(),
+            trusting_period: duration,
             trust_level: TrustThresholdFraction::new(1, 3).unwrap(),
-            unbonding_period: duration.clone(),
+            unbonding_period: duration,
             max_clock_drift: duration,
-            frozen_height: height.clone(),
+            frozen_height: height,
             latest_height: height,
             upgrade_path: vec![String::from("path")],
             allow_update_after_expiry: false,
