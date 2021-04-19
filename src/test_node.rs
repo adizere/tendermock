@@ -6,13 +6,14 @@ mod tests {
     use std::convert::TryInto;
     use std::str::FromStr;
 
-    use ibc::ics02_client::client_def::{AnyClientState, AnyConsensusState};
+    use ibc::ics02_client::client_consensus::AnyConsensusState;
+    use ibc::ics02_client::client_state::AnyClientState;
     use ibc::ics02_client::client_type::ClientType;
     use ibc::ics02_client::context::{ClientKeeper, ClientReader};
-    use ibc::ics07_tendermint::client_state::ClientState;
+    use ibc::ics07_tendermint::client_state::{AllowUpdate, ClientState};
     use ibc::ics07_tendermint::consensus_state::ConsensusState;
     use ibc::ics23_commitment::commitment::CommitmentRoot;
-    use ibc::ics24_host::identifier::ClientId;
+    use ibc::ics24_host::identifier::{ChainId, ClientId};
     use ibc::Height;
     use tendermint::trust_threshold::TrustThresholdFraction;
 
@@ -62,7 +63,7 @@ mod tests {
         let duration = std::time::Duration::new(60, 0);
         let height = Height::new(1, 1);
         let client_state = ClientState {
-            chain_id: String::from("test_chain"),
+            chain_id: ChainId::from_str("test_chain").unwrap(),
             trusting_period: duration,
             trust_level: TrustThresholdFraction::new(1, 3).unwrap(),
             unbonding_period: duration,
@@ -70,8 +71,10 @@ mod tests {
             frozen_height: height,
             latest_height: height,
             upgrade_path: vec![String::from("path")],
-            allow_update_after_expiry: false,
-            allow_update_after_misbehaviour: false,
+            allow_update: AllowUpdate {
+                after_expiry: false,
+                after_misbehaviour: false,
+            },
         };
         AnyClientState::Tendermint(client_state)
     }

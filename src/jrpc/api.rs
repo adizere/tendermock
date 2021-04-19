@@ -142,13 +142,16 @@ where
         let node = state.node.read();
         let block = node
             .get_chain()
-            .get_block(req.height.into())
+            .get_block(req.height.unwrap().into())
             .ok_or(JrpcError::InvalidRequest)?;
         let validators = block.validators.validators().clone();
-        Ok(ValidatorResponse {
-            block_height: block.signed_header.header.height,
+        let total = validators.len() as i32;
+
+        Ok(ValidatorResponse::new(
+            block.signed_header.header.height,
             validators,
-        })
+            total,
+        ))
     }
 
     /// JsonRPC /status endpoint.

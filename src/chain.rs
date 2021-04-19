@@ -5,8 +5,8 @@
 use std::sync::RwLock;
 
 use ibc::Height;
-use tendermint::Block as TMBlock;
-use tendermint_testgen::light_block::TMLightBlock;
+use tendermint::Block as TmBlock;
+use tendermint_testgen::light_block::TmLightBlock;
 use tendermint_testgen::{Generator, LightBlock};
 
 use crate::store::Storage;
@@ -64,7 +64,7 @@ impl<S: Storage> Chain<S> {
     }
 
     /// Returns a Tendermint Light Block or None if no block exist at that height.
-    pub fn get_block(&self, height: u64) -> Option<TMLightBlock> {
+    pub fn get_block(&self, height: u64) -> Option<TmLightBlock> {
         let chain = &self.blocks.read().unwrap();
         let block = Chain::<S>::get_block_at_height(height, &chain.chain, &chain.pending_block)?;
         block.generate().ok()
@@ -107,8 +107,8 @@ impl<S: Storage> Chain<S> {
     }
 }
 
-/// Build a Tendermint block from a Tendermint loght block.
-pub fn to_full_block(light_block: TMLightBlock) -> TMBlock {
+/// Build a Tendermint block from a Tendermint light block.
+pub fn to_full_block(light_block: TmLightBlock) -> TmBlock {
     let signed_header = light_block.signed_header;
     let block = tendermint::Block::new(
         signed_header.header,

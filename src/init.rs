@@ -7,9 +7,9 @@
 use std::str::FromStr;
 
 use ibc::{
-    ics02_client::client_def::AnyClientState, ics02_client::client_type::ClientType,
-    ics02_client::context::ClientKeeper, ics07_tendermint::client_state::ClientState,
-    ics24_host::identifier::ClientId, Height,
+    ics02_client::client_state::AnyClientState, ics02_client::client_type::ClientType,
+    ics02_client::context::ClientKeeper, ics07_tendermint::client_state::AllowUpdate,
+    ics07_tendermint::client_state::ClientState, ics24_host::identifier::ClientId, Height,
 };
 use tendermint::trust_threshold::TrustThresholdFraction;
 
@@ -38,7 +38,7 @@ fn new_client_state(config: &Config) -> AnyClientState {
     let duration = std::time::Duration::new(3600 * 24 * 30, 0);
     let height = Height::new(1, 1);
     let client_state = ClientState {
-        chain_id: String::from(&config.chain_id),
+        chain_id: String::from(&config.chain_id).parse().unwrap(),
         trusting_period: duration,
         trust_level: TrustThresholdFraction::new(1, 3).unwrap(),
         unbonding_period: duration,
@@ -46,8 +46,10 @@ fn new_client_state(config: &Config) -> AnyClientState {
         frozen_height: height,
         latest_height: height,
         upgrade_path: vec![String::from("path")],
-        allow_update_after_expiry: false,
-        allow_update_after_misbehaviour: false,
+        allow_update: AllowUpdate {
+            after_expiry: false,
+            after_misbehaviour: false,
+        },
     };
     AnyClientState::Tendermint(client_state)
 }

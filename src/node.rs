@@ -4,14 +4,16 @@
 //! This also exposes a thread safe version called `SharedNode` for use by the various RPC
 //! interfaces.
 //!
-//! To integrate with IBC modules, the node implements the `ICS26Context` traits, which mainly deal
+//! To integrate with IBC modules, the node implements the `Ics26Context` traits, which mainly deal
 //! with storing and reading values from the store.
 #![allow(unused_variables)] // lot of todos...
 
 use std::convert::TryFrom;
 use std::str::FromStr;
 
-use ibc::ics02_client::client_def::{AnyClientState, AnyConsensusState};
+use ibc::application::ics20_fungible_token_transfer::context::Ics20Context;
+use ibc::ics02_client::client_consensus::AnyConsensusState;
+use ibc::ics02_client::client_state::AnyClientState;
 use ibc::ics02_client::client_type::ClientType;
 use ibc::ics02_client::context::{ClientKeeper, ClientReader};
 use ibc::ics02_client::error::{Error as ClientError, Kind as ClientErrorKind};
@@ -21,14 +23,14 @@ use ibc::ics03_connection::error::Error as ConnectionError;
 use ibc::ics03_connection::version::Version;
 use ibc::ics04_channel::channel::ChannelEnd;
 use ibc::ics04_channel::context::{ChannelKeeper, ChannelReader};
-use ibc::ics04_channel::error::Error as ChannelError;
+use ibc::ics04_channel::error::{Error as ChannelError, Error};
+use ibc::ics04_channel::packet::{Receipt, Sequence};
 use ibc::ics05_port::capabilities::Capability;
 use ibc::ics05_port::context::PortReader;
 use ibc::ics23_commitment::commitment::CommitmentPrefix;
 use ibc::ics24_host::identifier::{ChannelId, ClientId, ConnectionId, PortId};
-use ibc::ics26_routing::context::ICS26Context;
+use ibc::ics26_routing::context::Ics26Context;
 use ibc::Height;
-
 use ibc_proto::ibc::core::connection::v1::ConnectionEnd as RawConnectionEnd;
 use prost::Message;
 use prost_types::Any;
@@ -271,7 +273,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
 impl<S: Storage> ConnectionKeeper for SharedNode<S> {
     fn store_connection(
         &mut self,
-        connection_id: &ConnectionId,
+        connection_id: ConnectionId,
         connection_end: &ConnectionEnd,
     ) -> Result<(), ConnectionError> {
         let mut buffer = Vec::new();
@@ -285,7 +287,7 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
 
     fn store_connection_to_client(
         &mut self,
-        connection_id: &ConnectionId,
+        connection_id: ConnectionId,
         client_id: &ClientId,
     ) -> Result<(), ConnectionError> {
         let path = format!("clients/{}/connections", client_id.as_str());
@@ -302,8 +304,8 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
         Ok(())
     }
 
-    fn next_connection_id(&mut self) -> ConnectionId {
-        todo!();
+    fn increase_connection_counter(&mut self) {
+        todo!()
     }
 }
 
@@ -323,10 +325,6 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
 
     fn host_current_height(&self) -> Height {
         self.read().chain.get_height()
-    }
-
-    fn host_chain_history_size(&self) -> usize {
-        100
     }
 
     fn commitment_prefix(&self) -> CommitmentPrefix {
@@ -362,16 +360,60 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
             None => None,
         }
     }
+
+    fn host_oldest_height(&self) -> Height {
+        todo!()
+    }
+
+    fn connection_counter(&self) -> u64 {
+        todo!()
+    }
 }
 
 impl<S: Storage> ChannelKeeper for SharedNode<S> {
-    fn next_channel_id(&mut self) -> ChannelId {
-        todo!();
+    fn store_packet_commitment(
+        &mut self,
+        key: (PortId, ChannelId, Sequence),
+        timestamp: u64,
+        heigh: Height,
+        data: Vec<u8>,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    fn delete_packet_commitment(
+        &mut self,
+        key: (PortId, ChannelId, Sequence),
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    fn store_packet_receipt(
+        &mut self,
+        key: (PortId, ChannelId, Sequence),
+        receipt: Receipt,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    fn store_packet_acknowledgement(
+        &mut self,
+        key: (PortId, ChannelId, Sequence),
+        ack: Vec<u8>,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    fn delete_packet_acknowledgement(
+        &mut self,
+        key: (PortId, ChannelId, Sequence),
+    ) -> Result<(), Error> {
+        todo!()
     }
 
     fn store_connection_channels(
         &mut self,
-        conn_id: &ConnectionId,
+        conn_id: ConnectionId,
         port_channel_id: &(PortId, ChannelId),
     ) -> Result<(), ChannelError> {
         todo!();
@@ -379,7 +421,7 @@ impl<S: Storage> ChannelKeeper for SharedNode<S> {
 
     fn store_channel(
         &mut self,
-        port_channel_id: &(PortId, ChannelId),
+        port_channel_id: (PortId, ChannelId),
         channel_end: &ChannelEnd,
     ) -> Result<(), ChannelError> {
         todo!();
@@ -387,26 +429,30 @@ impl<S: Storage> ChannelKeeper for SharedNode<S> {
 
     fn store_next_sequence_send(
         &mut self,
-        port_channel_id: &(PortId, ChannelId),
-        seq: u64,
+        port_channel_id: (PortId, ChannelId),
+        seq: Sequence,
     ) -> Result<(), ChannelError> {
         todo!();
     }
 
     fn store_next_sequence_recv(
         &mut self,
-        port_channel_id: &(PortId, ChannelId),
-        seq: u64,
+        port_channel_id: (PortId, ChannelId),
+        seq: Sequence,
     ) -> Result<(), ChannelError> {
         todo!();
     }
 
     fn store_next_sequence_ack(
         &mut self,
-        port_channel_id: &(PortId, ChannelId),
-        seq: u64,
+        port_channel_id: (PortId, ChannelId),
+        seq: Sequence,
     ) -> Result<(), ChannelError> {
         todo!();
+    }
+
+    fn increase_channel_counter(&mut self) {
+        todo!()
     }
 }
 
@@ -423,27 +469,60 @@ impl<S: Storage> ChannelReader for SharedNode<S> {
         todo!();
     }
 
-    fn channel_client_state(
-        &self,
-        port_channel_id: &(PortId, ChannelId),
-    ) -> Option<AnyClientState> {
-        todo!();
+    fn client_state(&self, client_id: &ClientId) -> Option<AnyClientState> {
+        todo!()
     }
 
-    fn channel_client_consensus_state(
+    fn client_consensus_state(
         &self,
-        port_channel_id: &(PortId, ChannelId),
+        client_id: &ClientId,
         height: Height,
     ) -> Option<AnyConsensusState> {
-        todo!();
+        todo!()
     }
 
-    fn port_capability(&self, port_id: &PortId) -> Option<Capability> {
-        todo!();
+    fn authenticated_capability(&self, port_id: &PortId) -> Result<Capability, Error> {
+        todo!()
     }
 
-    fn capability_authentification(&self, port_id: &PortId, cap: &Capability) -> bool {
-        todo!();
+    fn get_next_sequence_send(&self, port_channel_id: &(PortId, ChannelId)) -> Option<Sequence> {
+        todo!()
+    }
+
+    fn get_next_sequence_recv(&self, port_channel_id: &(PortId, ChannelId)) -> Option<Sequence> {
+        todo!()
+    }
+
+    fn get_next_sequence_ack(&self, port_channel_id: &(PortId, ChannelId)) -> Option<Sequence> {
+        todo!()
+    }
+
+    fn get_packet_commitment(&self, key: &(PortId, ChannelId, Sequence)) -> Option<String> {
+        todo!()
+    }
+
+    fn get_packet_receipt(&self, key: &(PortId, ChannelId, Sequence)) -> Option<Receipt> {
+        todo!()
+    }
+
+    fn get_packet_acknowledgement(&self, key: &(PortId, ChannelId, Sequence)) -> Option<String> {
+        todo!()
+    }
+
+    fn hash(&self, value: String) -> String {
+        todo!()
+    }
+
+    fn host_height(&self) -> Height {
+        todo!()
+    }
+
+    fn host_timestamp(&self) -> u64 {
+        todo!()
+    }
+
+    fn channel_counter(&self) -> u64 {
+        todo!()
     }
 }
 
@@ -452,12 +531,14 @@ impl<S: Storage> PortReader for SharedNode<S> {
         todo!();
     }
 
-    fn autenthenticate(&self, key: &Capability, port_id: &PortId) -> bool {
-        todo!();
+    fn authenticate(&self, key: &Capability, port_id: &PortId) -> bool {
+        todo!()
     }
 }
 
-impl<S: Storage> ICS26Context for SharedNode<S> {}
+impl<S: Storage> Ics20Context for SharedNode<S> {}
+
+impl<S: Storage> Ics26Context for SharedNode<S> {}
 
 /// A type representing connections in memory
 #[derive(Serialize, Deserialize)]
