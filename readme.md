@@ -30,7 +30,7 @@ OPTIONS:
 An example of a valid config can be found in `test/config.example.json`, which can be used like that:
 
 ```sh
-cargo run -- -c config/config.example.json -v
+cargo run -- -c config/config.example.json
 ```
 
 ## Sending queries

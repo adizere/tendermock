@@ -37,5 +37,5 @@ RUN chown -R $NODE_USER:$NODE_GROUP ${APP}
 USER $NODE_USER
 WORKDIR ${APP}
 
-CMD ["./tendermock", "-v"]
+CMD ["./tendermock"]
 

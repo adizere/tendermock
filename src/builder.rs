@@ -4,6 +4,12 @@
 //!
 //! It is the public API for interacting with Tendermock.
 
+use std::net::SocketAddr;
+use std::path::Path;
+
+use futures::future::try_join_all;
+use futures::try_join;
+
 use crate::config::Config;
 use crate::grpc;
 use crate::init;
@@ -11,12 +17,6 @@ use crate::jrpc;
 use crate::logger::Log;
 use crate::node;
 use crate::store;
-
-use futures::future::try_join_all;
-use futures::try_join;
-
-use std::net::SocketAddr;
-use std::path::Path;
 
 /// Tendermock builder object.
 pub struct Tendermock {
@@ -112,7 +112,6 @@ async fn schedule_growth<S: store::Storage>(
     interval: u64,
 ) -> Result<(), std::convert::Infallible> {
     node.grow();
-    display_last_block(&node);
     if interval == 0 {
         return Ok(());
     }
@@ -121,19 +120,5 @@ async fn schedule_growth<S: store::Storage>(
         let node_ref = node.write();
         node_ref.chain().grow();
         drop(node_ref);
-        display_last_block(&node);
     }
-}
-
-/// Displays the last block of the node's chain.
-fn display_last_block<S: store::Storage>(node: &node::SharedNode<S>) {
-    let node = node.read();
-    let block = node.chain().get_block(0).unwrap();
-    let header = block.signed_header.header;
-    log!(
-        Log::Chain,
-        "Height: {} - Hash: {}",
-        header.height,
-        &header.hash()
-    );
 }

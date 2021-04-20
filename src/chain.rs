@@ -9,6 +9,7 @@ use tendermint::Block as TmBlock;
 use tendermint_testgen::light_block::TmLightBlock;
 use tendermint_testgen::{Generator, LightBlock};
 
+use crate::logger::Log;
 use crate::store::Storage;
 
 pub struct Chain<S: Storage> {
@@ -72,7 +73,7 @@ impl<S: Storage> Chain<S> {
 
     /// Grow the chain by adding a new block.
     pub fn grow(&self) {
-        // Date of the growth
+        // Date of the new block
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -90,6 +91,16 @@ impl<S: Storage> Chain<S> {
 
         // Grow the store
         self.store.grow();
+
+        // Displays the last block of the node's chain.
+        let block = self.get_block(0).unwrap();
+        let header = block.signed_header.header;
+        log!(
+            Log::Chain,
+            "Height: {} - Hash: {}",
+            header.height,
+            &header.hash()
+        );
     }
 
     /// Returns the store at a given height, where 0 means latest.
