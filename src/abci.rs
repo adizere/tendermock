@@ -13,7 +13,7 @@ use crate::store::Storage;
 
 /// Return information about the ABCI API.
 pub fn get_info<S: Storage>(node: &Node<S>) -> AbciInfo {
-    let chain = node.get_chain();
+    let chain = node.chain();
     // TODO: inject valid informations
     AbciInfo {
         data: "data_placeholder".to_string(),
@@ -32,7 +32,7 @@ pub fn handle_query<S: Storage>(query: AbciQueryRequest, node: &Node<S>) -> Abci
         None => 0,
         Some(h) => h.value(),
     };
-    let store = node.get_store();
+    let store = node.store();
     let item = store.get(height, &query.data);
     if let Some(item) = item {
         AbciQuery {

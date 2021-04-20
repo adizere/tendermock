@@ -135,7 +135,7 @@ async fn schedule_growth<S: store::Storage>(
     loop {
         tokio::time::sleep(std::time::Duration::from_secs(interval)).await;
         let node_ref = node.write();
-        node_ref.get_chain().grow();
+        node_ref.chain().grow();
         drop(node_ref);
         if verbose {
             display_last_block(&node);
@@ -146,7 +146,7 @@ async fn schedule_growth<S: store::Storage>(
 /// Displays the last block of the node's chain.
 fn display_last_block<S: store::Storage>(node: &node::SharedNode<S>) {
     let node = node.read();
-    let block = node.get_chain().get_block(0).unwrap();
+    let block = node.chain().get_block(0).unwrap();
     let header = block.signed_header.header;
     log!(
         Log::Chain,

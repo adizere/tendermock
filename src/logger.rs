@@ -11,12 +11,13 @@
 use chrono::Utc;
 use colored::*;
 
-/// The list of entitites that can emit logs.
+/// The list of modules that can emit logs.
 pub enum Log {
     Jrpc,
     Grpc,
     Chain,
     Websocket,
+    Node,
 }
 
 impl Log {
@@ -26,6 +27,7 @@ impl Log {
             Log::Jrpc => "[JsonRPC]".yellow(),
             Log::Chain => "[Chain]".magenta(),
             Log::Grpc => "[gRPC]".green(),
+            Log::Node => "[Node]".bright_magenta(),
         }
     }
 }

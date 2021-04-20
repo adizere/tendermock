@@ -11,21 +11,22 @@
 //! to implement `Borrow<[u8]>`.
 //!
 //! For more info, see [AVL Tree on wikipedia](https://en.wikipedia.org/wiki/AVL_tree),
+use std::borrow::Borrow;
+use std::cmp::{Ord, Ordering};
+
 use ics23::commitment_proof::Proof;
 use ics23::{CommitmentProof, ExistenceProof, HashOp, InnerOp, LeafOp, LengthOp};
 use sha2::{Digest, Sha256};
-use std::borrow::Borrow;
-use std::cmp::{Ord, Ordering};
 use tendermint::hash::{Algorithm, Hash};
+
+pub use as_bytes::AsBytes;
+pub use proof::get_proof_spec;
 
 mod as_bytes;
 mod proof;
 
 #[cfg(test)]
 mod tests;
-
-pub use as_bytes::AsBytes;
-pub use proof::get_proof_spec;
 
 const HASH_ALGO: Algorithm = Algorithm::Sha256;
 
@@ -334,7 +335,6 @@ where
     }
 
     /// Return a list of the keys present in the tree.
-    #[allow(dead_code)]
     pub fn get_keys(&self) -> Vec<&K> {
         let mut keys = Vec::new();
         Self::get_keys_rec(&self.root, &mut keys);

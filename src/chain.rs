@@ -122,13 +122,13 @@ pub fn to_full_block(light_block: TmLightBlock) -> TmBlock {
 
 #[cfg(test)]
 mod test {
-    use crate::store::InMemoryStore;
+    use crate::store::Memory;
 
     use super::*;
 
     #[test]
     fn chain() {
-        let chain = Chain::new(InMemoryStore::new());
+        let chain = Chain::new(Memory::new());
         let height = chain.get_height();
 
         // Chain is expected to start at height 1 (same as Storage)

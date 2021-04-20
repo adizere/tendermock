@@ -36,9 +36,9 @@ mod tests {
             .unwrap();
         node.store_consensus_state(client_id.clone(), height, consensus_state.clone())
             .unwrap();
-        println!("{:?}", node.read().get_store());
+        println!("{:?}", node.read().store());
         node.grow();
-        println!("{:?}", node.read().get_store());
+        println!("{:?}", node.read().store());
         let client_type = node.client_type(&client_id).unwrap();
         assert_eq!(client_type, ClientType::Tendermint);
         let retrieved_client = node.client_state(&client_id).unwrap();

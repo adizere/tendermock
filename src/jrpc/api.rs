@@ -1,9 +1,12 @@
 //! The Tendermock JsonRPC HTTP API.
+
+use ibc::events::IbcEvent;
 use ibc::ics26_routing::handler::deliver;
 use ibc_proto::cosmos::tx::v1beta1::{TxBody, TxRaw};
 use prost::Message;
 use tendermint::abci::responses::Codespace;
-use tendermint::abci::{transaction::Hash, Code, Info};
+use tendermint::abci::tag::Tag;
+use tendermint::abci::{transaction::Hash, Code, Event, Info};
 use tendermint_rpc::endpoint::{
     abci_info::Request as AbciInfoRequest, abci_info::Response as AbciInfoResponse,
     abci_query::Request as AbciQueryRequest, abci_query::Response as AbciQueryResponse,
@@ -25,7 +28,7 @@ use crate::store;
 use super::utils::{JrpcError, JrpcFilter, JrpcResult};
 
 const PUBLICK_KEY: &str = "4A25C6640A1F72B9C975338294EF51B6D1C33158BB6ECBA69FBC3FB5A33C9DCE";
-const HASH_LENGTH: usize = 32; // tendermint::abci::transaction::hash::LENGHT is not exposed...
+const HASH_LENGTH: usize = 32; // tendermint::abci::transaction::hash::LENGTH is not exposed...
 
 /// A structure to build the JsonRPC HTTP API, see the `new` method.
 pub struct Jrpc<S: store::Storage>
@@ -80,7 +83,7 @@ where
         };
         let node = state.node.read();
         let block = node
-            .get_chain()
+            .chain()
             .get_block(height)
             .ok_or(JrpcError::InvalidRequest)?;
         let tm_block = to_full_block(block);
@@ -105,7 +108,7 @@ where
         };
         let node = state.node.read();
         let block = node
-            .get_chain()
+            .chain()
             .get_block(height)
             .ok_or(JrpcError::InvalidRequest)?;
         let signed_header = block.signed_header;
@@ -122,11 +125,11 @@ where
             log!(Log::Jrpc, "/genesis    {:?}", req);
         }
         let node = state.node.read();
-        let genesis_block = node.get_chain().get_block(1).unwrap();
+        let genesis_block = node.chain().get_block(1).unwrap();
         let genesis = tendermint::Genesis {
             genesis_time: genesis_block.signed_header.header.time,
-            chain_id: node.get_chain_id().clone(),
-            consensus_params: node.get_consensus_params().clone(),
+            chain_id: node.chain_id().clone(),
+            consensus_params: node.consensus_params().clone(),
             validators: genesis_block.validators.validators().clone(),
             app_hash: vec![100, 200],
             app_state: serde_json::Value::Null,
@@ -141,7 +144,7 @@ where
         }
         let node = state.node.read();
         let block = node
-            .get_chain()
+            .chain()
             .get_block(req.height.unwrap().into())
             .ok_or(JrpcError::InvalidRequest)?;
         let validators = block.validators.validators().clone();
@@ -161,7 +164,7 @@ where
             log!(Log::Jrpc, "/status     {:?}", req);
         }
         let node = state.node.read();
-        let node_info = node.get_info().clone();
+        let node_info = node.info().clone();
         let sync_info = node.get_sync_info();
         let validator_info = tendermint::validator::Info {
             address: tendermint::account::Id::new([41; 20]),
@@ -222,18 +225,36 @@ where
         }
         // Grow chain
         let node = state.node.write();
-        node.get_chain().grow();
-        let block = node.get_chain().get_block(0).unwrap();
+        node.chain().grow();
+        let block = node.chain().get_block(0).unwrap();
         drop(node); // Release write lock
 
-        // Build transactions
+        // Decode the txs
         let data: Vec<u8> = req.tx.into();
         let tx_raw = TxRaw::decode(&*data).map_err(|_| JrpcError::InvalidRequest)?;
         let tx_body = TxBody::decode(&*tx_raw.body_bytes).map_err(|_| JrpcError::InvalidRequest)?;
-        deliver(&mut state.node, tx_body.messages).map_err(|e| {
+
+        // Deliver the txs
+        let ibc_events = deliver(&mut state.node, tx_body.messages).map_err(|e| {
             log!(Log::Jrpc, "deliver error: '{}'", e);
             JrpcError::ServerError
         })?;
+
+        // Transform `IBCEvent` into `abci::Event`
+        // TODO: This is a workaround for https://github.com/informalsystems/ibc-rs/issues/838
+        let events = ibc_events
+            .iter()
+            .filter_map(|e| match e {
+                IbcEvent::CreateClient(c) => Some(Event {
+                    type_str: "create_client".to_string(),
+                    attributes: vec![Tag {
+                        key: "client_id".parse().unwrap(),
+                        value: c.client_id().to_string().parse().unwrap(),
+                    }],
+                }),
+                _ => None,
+            })
+            .collect();
 
         // Build a response, for now with arbitrary values.
         let tx_result = TxResult {
@@ -244,7 +265,7 @@ where
             gas_used: 10.into(),
             gas_wanted: 10.into(),
             info: Info::default(),
-            events: vec![],
+            events,
         };
         Ok(BroadcastTxCommitResponse {
             check_tx: tx_result.clone(),

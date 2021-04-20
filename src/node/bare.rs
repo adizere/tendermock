@@ -8,7 +8,8 @@ use tendermint_rpc::endpoint::status::SyncInfo;
 use crate::chain::Chain;
 use crate::config::Config;
 use crate::node::shared::SharedNode;
-use crate::store::{InMemoryStore, Storage};
+use crate::store::Memory;
+use crate::store::Storage;
 
 /// A bare node contains:
 ///     - a chain, plus its associated store,
@@ -20,7 +21,7 @@ pub struct Node<S: Storage> {
     consensus_params: tendermint::consensus::Params,
 }
 
-impl Node<InMemoryStore> {
+impl Node<Memory> {
     pub fn new(config: &Config) -> Self {
         // TODO: allow to pass customized values
         let info = node::Info {
@@ -43,8 +44,9 @@ impl Node<InMemoryStore> {
                 rpc_address: Address::from_str("tcp://127.0.0.1:26657").unwrap(),
             },
         };
+
         Node {
-            chain: Chain::new(InMemoryStore::new()),
+            chain: Chain::new(Memory::new()),
             chain_id: tendermint::chain::Id::try_from(config.chain_id.to_owned()).unwrap(),
             consensus_params: config.consensus_params.clone(),
             info,
@@ -52,29 +54,29 @@ impl Node<InMemoryStore> {
     }
 
     /// Return the node in an Arc<RwLock> wrapper, ready to be shared among threads.
-    pub fn shared(self) -> SharedNode<InMemoryStore> {
+    pub fn shared(self) -> SharedNode<Memory> {
         SharedNode::new(self)
     }
 }
 
 impl<S: Storage> Node<S> {
-    pub fn get_store(&self) -> &S {
+    pub fn store(&self) -> &S {
         &self.chain.get_store()
     }
 
-    pub fn get_chain(&self) -> &Chain<S> {
+    pub fn chain(&self) -> &Chain<S> {
         &self.chain
     }
 
-    pub fn get_info(&self) -> &node::Info {
+    pub fn info(&self) -> &node::Info {
         &self.info
     }
 
-    pub fn get_chain_id(&self) -> &chain::Id {
+    pub fn chain_id(&self) -> &chain::Id {
         &self.chain_id
     }
 
-    pub fn get_consensus_params(&self) -> &tendermint::consensus::Params {
+    pub fn consensus_params(&self) -> &tendermint::consensus::Params {
         &self.consensus_params
     }
 

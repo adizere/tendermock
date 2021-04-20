@@ -8,8 +8,10 @@
 
 #![allow(unused_variables)]
 mod bare;
+mod error;
 mod objects;
 mod shared;
 
 pub use bare::Node;
+pub use error::Error;
 pub use shared::SharedNode;

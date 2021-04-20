@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use std::str::FromStr;
 
 use ibc::{
@@ -28,8 +28,9 @@ use prost::Message;
 use prost_types::Any;
 use tendermint_proto::Protobuf;
 
+use crate::logger::Log;
 use crate::node::bare::Node;
-use crate::node::objects::Connections;
+use crate::node::objects::{ClientCounter, Connections};
 use crate::store::Storage;
 
 // System constant
@@ -75,7 +76,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
     fn client_type(&self, client_id: &ClientId) -> Option<ClientType> {
         let path = format!("clients/{}/clientType", client_id.as_str());
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         let client_type = store.get(0, path.as_bytes())?;
         let client_type = String::from_utf8(client_type.to_vec());
         match client_type {
@@ -87,7 +88,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
     fn client_state(&self, client_id: &ClientId) -> Option<AnyClientState> {
         let path = format!("clients/{}/clientState", client_id.as_str());
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         let value = store.get(0, path.as_bytes())?;
         let client_state = AnyClientState::decode(value.as_slice());
         client_state.ok()
@@ -100,14 +101,33 @@ impl<S: Storage> ClientReader for SharedNode<S> {
             height.to_string()
         );
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         let value = store.get(0, path.as_bytes())?;
         let consensus_state = AnyConsensusState::decode(value.as_slice());
         consensus_state.ok()
     }
 
     fn client_counter(&self) -> u64 {
-        todo!();
+        let path = "meta/clients/counter".to_string();
+        let node = self.read();
+        let store = node.store();
+
+        match store.get(0, path.as_bytes()) {
+            None => {
+                log!(Log::Node, "found no client counter");
+                0
+            }
+            Some(counter_raw) => {
+                let res: ClientCounter = counter_raw.clone().try_into().unwrap();
+                log!(
+                    Log::Node,
+                    "found this client counter '{:?}', converted to '{:?}'",
+                    counter_raw,
+                    res
+                );
+                res.into()
+            }
+        }
     }
 }
 
@@ -119,7 +139,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
     ) -> Result<(), ClientError> {
         let path = format!("clients/{}/clientType", client_id.as_str());
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         store.set(
             path.into_bytes(),
             client_type.as_string().as_bytes().to_owned(),
@@ -141,7 +161,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         data.encode(&mut buffer)
             .map_err(|e| ClientErrorKind::InvalidRawClientState.context(e))?;
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         store.set(path.into_bytes(), buffer);
         Ok(())
     }
@@ -162,13 +182,25 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         data.encode(&mut buffer)
             .map_err(|e| ClientErrorKind::InvalidRawConsensusState.context(e))?;
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         store.set(path.into_bytes(), buffer);
         Ok(())
     }
 
     fn increase_client_counter(&mut self) {
-        todo!();
+        let cnt = ClientCounter::from(self.client_counter() + 1);
+        log!(
+            Log::Node,
+            "found counter: '{}' increasing to '{:?}'",
+            self.client_counter(),
+            cnt
+        );
+
+        let path = "meta/clients/counter".to_string();
+        let node = self.write();
+        let store = node.store();
+
+        store.set(Vec::from(path.as_bytes()), cnt.into());
     }
 }
 
@@ -183,7 +215,7 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
         let raw: RawConnectionEnd = connection_end.to_owned().into();
         raw.encode(&mut buffer).unwrap();
         let node = self.write();
-        node.get_store().set(path.into_bytes(), buffer);
+        node.store().set(path.into_bytes(), buffer);
         Ok(())
     }
 
@@ -194,7 +226,7 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
     ) -> Result<(), ConnectionError> {
         let path = format!("clients/{}/connections", client_id.as_str());
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         let connections = store.get(0, path.as_bytes()).unwrap_or_default();
         let connections = String::from_utf8(connections).unwrap_or_else(|_| String::from(""));
         let mut connections = serde_json::from_str::<Connections>(&connections)
@@ -215,7 +247,7 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
     fn connection_end(&self, connection_id: &ConnectionId) -> Option<ConnectionEnd> {
         let path = format!("connections/{}", connection_id.as_str());
         let node = self.read();
-        let store = node.get_store();
+        let store = node.store();
         let value = store.get(0, path.as_bytes())?;
         let raw = RawConnectionEnd::decode(&*value).ok()?;
         ConnectionEnd::try_from(raw).ok()
@@ -226,7 +258,7 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
     }
 
     fn host_current_height(&self) -> Height {
-        self.read().get_chain().get_height()
+        self.read().chain().get_height()
     }
 
     fn host_oldest_height(&self) -> Height {
