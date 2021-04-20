@@ -201,7 +201,7 @@ where
             match node.key.cmp(&key) {
                 Ordering::Greater => AvlTree::insert_rec(&mut node.left, key, value),
                 Ordering::Less => AvlTree::insert_rec(&mut node.right, key, value),
-                Ordering::Equal => node.key = key,
+                Ordering::Equal => node.value = value,
             }
             node.update();
             AvlTree::balance_node(node_ref);

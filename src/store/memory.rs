@@ -32,7 +32,7 @@ impl std::fmt::Debug for Memory {
 
         write!(
             f,
-            "InMemoryStore {{ height: {}, keys: [{}] \n\tpending keys: [{}] }}",
+            "store::Memory {{ height: {}, keys: [{}] \n\tpending keys: [{}] }}",
             store.len(),
             last_store_keys
                 .iter()

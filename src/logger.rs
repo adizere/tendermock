@@ -17,7 +17,6 @@ pub enum Log {
     Grpc,
     Chain,
     Websocket,
-    Node,
 }
 
 impl Log {
@@ -27,7 +26,6 @@ impl Log {
             Log::Jrpc => "[JsonRPC]".yellow(),
             Log::Chain => "[Chain]".magenta(),
             Log::Grpc => "[gRPC]".green(),
-            Log::Node => "[Node]".bright_magenta(),
         }
     }
 }

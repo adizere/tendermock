@@ -28,7 +28,6 @@ use prost::Message;
 use prost_types::Any;
 use tendermint_proto::Protobuf;
 
-use crate::logger::Log;
 use crate::node::bare::Node;
 use crate::node::objects::{ClientCounter, Connections};
 use crate::store::Storage;
@@ -113,18 +112,9 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         let store = node.store();
 
         match store.get(0, path.as_bytes()) {
-            None => {
-                log!(Log::Node, "found no client counter");
-                0
-            }
+            None => 0,
             Some(counter_raw) => {
-                let res: ClientCounter = counter_raw.clone().try_into().unwrap();
-                log!(
-                    Log::Node,
-                    "found this client counter '{:?}', converted to '{:?}'",
-                    counter_raw,
-                    res
-                );
+                let res: ClientCounter = counter_raw.try_into().unwrap();
                 res.into()
             }
         }
@@ -189,18 +179,10 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
 
     fn increase_client_counter(&mut self) {
         let cnt = ClientCounter::from(self.client_counter() + 1);
-        log!(
-            Log::Node,
-            "found counter: '{}' increasing to '{:?}'",
-            self.client_counter(),
-            cnt
-        );
-
         let path = "meta/clients/counter".to_string();
-        let node = self.write();
+        let node = self.read();
         let store = node.store();
-
-        store.set(Vec::from(path.as_bytes()), cnt.into());
+        store.set(path.into_bytes(), cnt.into());
     }
 }
 
