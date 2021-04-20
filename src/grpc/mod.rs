@@ -21,12 +21,11 @@ mod staking;
 /// Create a new gRPC server.
 pub async fn serve<S: 'static + Storage + Sync + Send>(
     node: node::SharedNode<S>,
-    verbose: bool,
     addr: std::net::SocketAddr,
 ) -> Result<(), std::convert::Infallible> {
     Server::builder()
-        .add_service(staking::get_service(node.clone(), verbose))
-        .add_service(auth::get_service(node, verbose))
+        .add_service(staking::get_service(node.clone()))
+        .add_service(auth::get_service(node))
         .serve(addr)
         .then(|result| async {
             if let Err(e) = result {

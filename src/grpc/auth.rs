@@ -12,9 +12,8 @@ use tonic::{Request, Response, Status};
 
 pub fn get_service<S: 'static + Storage + Sync + Send>(
     node: node::SharedNode<S>,
-    verbose: bool,
 ) -> QueryServer<QueryService<S>> {
-    let query_service = QueryService::new(node, verbose);
+    let query_service = QueryService::new(node);
     QueryServer::new(query_service)
 }
 
@@ -23,12 +22,11 @@ pub fn get_service<S: 'static + Storage + Sync + Send>(
 pub struct QueryService<S: Storage> {
     #[allow(dead_code)]
     node: node::SharedNode<S>,
-    verbose: bool,
 }
 
 impl<S: Storage> QueryService<S> {
-    fn new(node: node::SharedNode<S>, verbose: bool) -> Self {
-        QueryService { node, verbose }
+    fn new(node: node::SharedNode<S>) -> Self {
+        QueryService { node }
     }
 }
 
@@ -38,9 +36,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         &self,
         request: Request<v1beta1::QueryAccountRequest>,
     ) -> Result<Response<v1beta1::QueryAccountResponse>, Status> {
-        if self.verbose {
-            log!(Log::Grpc, "/auth/account {:?}", request);
-        }
+        log!(Log::Grpc, "/auth/account {:?}", request);
         let base_account = v1beta1::BaseAccount {
             address: String::from("ACCOUNT_ADDRESS"),
             pub_key: None,
@@ -63,9 +59,7 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         &self,
         request: Request<v1beta1::QueryParamsRequest>,
     ) -> Result<Response<v1beta1::QueryParamsResponse>, Status> {
-        if self.verbose {
-            log!(Log::Grpc, "/auth/params {:?}", request);
-        }
+        log!(Log::Grpc, "/auth/params {:?}", request);
         unimplemented!()
     }
 }

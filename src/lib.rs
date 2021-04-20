@@ -9,7 +9,6 @@
 //! let grpc_addr = format!("127.0.0.1:{}", 6000).parse().unwrap();
 //!
 //! Tendermock::default()
-//!     .verbose(true)
 //!     .growth_rate(10)
 //!     .add_interface(jrpc_addr, grpc_addr)
 //!     .start();

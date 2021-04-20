@@ -82,11 +82,13 @@ impl<S: Storage> Chain<S> {
         let mut next_block = blocks.pending_block.next();
         let mut header_ref = next_block.header.as_mut().unwrap();
         header_ref.time = Some(now);
+
         // Set next_block to pending and push the old pending to the chain
         std::mem::swap(&mut blocks.pending_block, &mut next_block);
         blocks.chain.push(next_block);
         drop(blocks); // Release lock
-                      // Grow the store
+
+        // Grow the store
         self.store.grow();
     }
 

@@ -28,9 +28,6 @@ pub struct Tendermock {
 
     /// The genesis block configuration.
     config: Config,
-
-    /// Activate/deactivate verbose logging.
-    verbose: bool,
 }
 
 impl Tendermock {
@@ -38,13 +35,11 @@ impl Tendermock {
     /// - Grow interval: 0 (no growth)
     /// - Interfaces: [] (no interfaces)
     /// - Config: default
-    /// - verbose: false (no logs)
     pub fn new() -> Self {
         Tendermock {
             growth_interval: 0,
             interfaces: vec![],
             config: Config::default(),
-            verbose: false,
         }
     }
 
@@ -66,12 +61,6 @@ impl Tendermock {
         self
     }
 
-    /// Enable or disable verbose logging, default to off.
-    pub fn verbose(&mut self, verbose: bool) -> &mut Self {
-        self.verbose = verbose;
-        self
-    }
-
     /// Start the Tendermock node.
     ///
     /// This call is blocking, for running multiple nodes simultaneously threading can be used (a
@@ -89,12 +78,10 @@ impl Tendermock {
             log!(Log::Chain, "Warning: no interface configured");
         }
         for (jrpc_addr, grpc_addr) in &self.interfaces {
-            if self.verbose {
-                log!(Log::Grpc, "Listening on: {}", &grpc_addr);
-                log!(Log::Jrpc, "Listening on: {}", &jrpc_addr);
-            }
-            let jrpc_server = jrpc::serve(node.clone(), self.verbose, *jrpc_addr);
-            let grpc_server = grpc::serve(node.clone(), self.verbose, *grpc_addr);
+            log!(Log::Grpc, "Listening on: {}", &grpc_addr);
+            log!(Log::Jrpc, "Listening on: {}", &jrpc_addr);
+            let jrpc_server = jrpc::serve(node.clone(), *jrpc_addr);
+            let grpc_server = grpc::serve(node.clone(), *grpc_addr);
             jrpc_servers.push(jrpc_server);
             grpc_servers.push(grpc_server);
         }
@@ -106,7 +93,7 @@ impl Tendermock {
                 try_join!(
                     try_join_all(jrpc_servers),
                     try_join_all(grpc_servers),
-                    schedule_growth(node, self.growth_interval, self.verbose)
+                    schedule_growth(node, self.growth_interval)
                 )
             })
             .unwrap();
@@ -123,12 +110,9 @@ impl Default for Tendermock {
 async fn schedule_growth<S: store::Storage>(
     node: node::SharedNode<S>,
     interval: u64,
-    verbose: bool,
 ) -> Result<(), std::convert::Infallible> {
     node.grow();
-    if verbose {
-        display_last_block(&node);
-    }
+    display_last_block(&node);
     if interval == 0 {
         return Ok(());
     }
@@ -137,9 +121,7 @@ async fn schedule_growth<S: store::Storage>(
         let node_ref = node.write();
         node_ref.chain().grow();
         drop(node_ref);
-        if verbose {
-            display_last_block(&node);
-        }
+        display_last_block(&node);
     }
 }
 

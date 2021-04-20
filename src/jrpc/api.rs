@@ -35,7 +35,6 @@ pub struct Jrpc<S: store::Storage>
 where
     node::SharedNode<S>: Clone,
 {
-    pub verbose: bool,
     pub node: node::SharedNode<S>,
 }
 
@@ -43,7 +42,6 @@ where
 impl<S: store::Storage> Clone for Jrpc<S> {
     fn clone(&self) -> Self {
         Self {
-            verbose: self.verbose,
             node: self.node.clone(),
         }
     }
@@ -56,10 +54,9 @@ where
 {
     /// Creates a new `warp` filter that mimics Tendermint's JsonRPC HTTP API.
     pub fn new_mimic(
-        verbose: bool,
         node: node::SharedNode<S>,
     ) -> impl warp::Filter<Extract = (String,), Error = warp::Rejection> + Clone {
-        let state = Self { verbose, node };
+        let state = Self { node };
         JrpcFilter::new(state)
             .add("block", Self::block)
             .add("commit", Self::commit)
@@ -74,9 +71,7 @@ where
 
     /// JsonRPC /block endpoint.
     fn block(req: BlockRequest, state: Self) -> JrpcResult<BlockResponse> {
-        if state.verbose {
-            log!(Log::Jrpc, "/block      {:?}", req);
-        }
+        log!(Log::Jrpc, "/block      {:?}", req);
         let height = match req.height {
             None => 0,
             Some(height) => height.into(),
@@ -99,9 +94,7 @@ where
 
     /// JsonRPC /commit endpoint.
     fn commit(req: CommitRequest, state: Self) -> JrpcResult<CommitResponse> {
-        if state.verbose {
-            log!(Log::Jrpc, "/commit     {:?}", req);
-        }
+        log!(Log::Jrpc, "/commit     {:?}", req);
         let height = match req.height {
             None => 0,
             Some(height) => height.into(),
@@ -121,9 +114,7 @@ where
     /// JsonRPC /genesis endpoint.
     #[allow(clippy::unnecessary_wraps)]
     fn genesis(req: GenesisRequest, state: Self) -> JrpcResult<GenesisResponse> {
-        if state.verbose {
-            log!(Log::Jrpc, "/genesis    {:?}", req);
-        }
+        log!(Log::Jrpc, "/genesis    {:?}", req);
         let node = state.node.read();
         let genesis_block = node.chain().get_block(1).unwrap();
         let genesis = tendermint::Genesis {
@@ -139,9 +130,7 @@ where
 
     /// JsonRPC /validators endpoint.
     fn validators(req: ValidatorsRequest, state: Self) -> JrpcResult<ValidatorResponse> {
-        if state.verbose {
-            log!(Log::Jrpc, "/validators {:?}", req);
-        }
+        log!(Log::Jrpc, "/validators {:?}", req);
         let node = state.node.read();
         let block = node
             .chain()
@@ -160,9 +149,7 @@ where
     /// JsonRPC /status endpoint.
     #[allow(clippy::unnecessary_wraps)]
     fn status(req: StatusRequest, state: Self) -> JrpcResult<StatusResponse> {
-        if state.verbose {
-            log!(Log::Jrpc, "/status     {:?}", req);
-        }
+        log!(Log::Jrpc, "/status     {:?}", req);
         let node = state.node.read();
         let node_info = node.info().clone();
         let sync_info = node.get_sync_info();
@@ -185,9 +172,7 @@ where
     /// JsonRPC /abci_info endpoint.
     #[allow(clippy::unnecessary_wraps)]
     fn abci_info(req: AbciInfoRequest, state: Self) -> JrpcResult<AbciInfoResponse> {
-        if state.verbose {
-            log!(Log::Jrpc, "/abci_info  {:?}", req);
-        }
+        log!(Log::Jrpc, "/abci_info  {:?}", req);
         let node = state.node.read();
         Ok(AbciInfoResponse {
             response: abci::get_info(&node),
@@ -197,14 +182,12 @@ where
     /// JsonRPC /abci_query endpoint.
     #[allow(clippy::unnecessary_wraps)]
     fn abci_query(req: AbciQueryRequest, state: Self) -> JrpcResult<AbciQueryResponse> {
-        if state.verbose {
-            log!(
-                Log::Jrpc,
-                "/abci_query {{ path: {:?}, data: {} }}",
-                req.path,
-                String::from_utf8(req.data.clone()).unwrap_or_else(|_| "".to_string())
-            );
-        }
+        log!(
+            Log::Jrpc,
+            "/abci_query {{ path: {:?}, data: {} }}",
+            req.path,
+            String::from_utf8(req.data.clone()).unwrap_or_else(|_| "".to_string())
+        );
         let node = state.node.read();
         Ok(AbciQueryResponse {
             response: abci::handle_query(req, &node),
@@ -216,13 +199,11 @@ where
         req: BroadcastTxCommitRequest,
         mut state: Self,
     ) -> JrpcResult<BroadcastTxCommitResponse> {
-        if state.verbose {
-            log!(
-                Log::Jrpc,
-                "/broadcast_tx_commit {{ tx: {} bytes }}",
-                req.tx.as_bytes().len()
-            );
-        }
+        log!(
+            Log::Jrpc,
+            "/broadcast_tx_commit {{ tx: {} bytes }}",
+            req.tx.as_bytes().len()
+        );
         // Grow chain
         let node = state.node.write();
         node.chain().grow();

@@ -22,10 +22,9 @@ pub const WEBSOCKET_PATH: &str = "websocket";
 /// Create a new gRPC server.
 pub async fn serve<S: 'static + Storage + Sync + Send>(
     node: node::SharedNode<S>,
-    verbose: bool,
     addr: std::net::SocketAddr,
 ) -> Result<(), std::convert::Infallible> {
-    let jrpc_api = warp::path::end().and(Jrpc::new_mimic(verbose, node));
+    let jrpc_api = warp::path::end().and(Jrpc::new_mimic(node));
     let ws = warp::path(WEBSOCKET_PATH).and(Ws::new_mimic());
     warp::serve(jrpc_api.or(ws))
         .run(addr)

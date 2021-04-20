@@ -18,7 +18,6 @@ USAGE:
 
 FLAGS:
     -h, --help       Prints help information
-    -v, --verbose    Verbode mode
     -V, --version    Prints version information
 
 OPTIONS:
@@ -53,7 +52,6 @@ let jrpc_addr = format!("127.0.0.1:{}", 5000).parse().unwrap();
 let grpc_addr = format!("127.0.0.1:{}", 6000).parse().unwrap();
 
 Tendermock::new()
-    .verbose(true)
     .growth_rate(10)
     .add_interface(jrpc_addr, grpc_addr)
     .start();

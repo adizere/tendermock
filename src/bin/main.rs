@@ -7,10 +7,6 @@ use tendermock::Tendermock;
 #[clap(verbatim_doc_comment)]
 /// Tendermock - a mocked Tendermint node
 pub struct Args {
-    /// Verbose mode
-    #[clap(short, long)]
-    pub verbose: bool,
-
     /// JsonRPC port
     #[clap(short, long, default_value = "26657")]
     pub json_port: u16,
@@ -36,7 +32,6 @@ fn main() {
 
     let mut tendermock = Tendermock::default();
     tendermock
-        .verbose(args.verbose)
         .add_interface(jrpc_addr, grpc_addr)
         .growth_rate(args.block);
     if let Some(config_path) = args.config {

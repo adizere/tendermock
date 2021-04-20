@@ -28,21 +28,14 @@ impl std::fmt::Debug for Memory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let store = self.store.read().unwrap();
         let pending = self.pending.read().unwrap();
-        let keys = store.last().unwrap().get_keys();
-
-        // Meta data: more explicit output
-        // let mkeys: Vec<&Vec<u8>> = store.last().unwrap().get_keys().iter()
-        //     .filter(|&k| String::from_utf8_lossy(k).into_owned().starts_with("meta")).collect();
-        //
-        // let values = mkeys.iter().map(|&k| {
-        //     let value = store.last().unwrap().get(k).unwrap();
-        // }).collect();
+        let last_store_keys = store.last().unwrap().get_keys();
 
         write!(
             f,
-            "InMemoryStore {{ height: {}, keys: [{}] \n\tpending: [{}] }}",
+            "InMemoryStore {{ height: {}, keys: [{}] \n\tpending keys: [{}] }}",
             store.len(),
-            keys.iter()
+            last_store_keys
+                .iter()
                 .map(|k| String::from_utf8_lossy(k).into_owned())
                 .collect::<Vec<String>>()
                 .join(", "),
