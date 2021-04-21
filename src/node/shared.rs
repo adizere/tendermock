@@ -30,7 +30,7 @@ use tendermint_proto::Protobuf;
 
 use crate::node::bare::Node;
 use crate::node::objects::{ClientCounter, Connections};
-use crate::store::Storage;
+use crate::store::{Location, Storage};
 
 // System constant
 const COMMITMENT_PREFIX: &str = "store/ibc/key";
@@ -76,7 +76,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         let path = format!("clients/{}/clientType", client_id.as_str());
         let node = self.read();
         let store = node.store();
-        let client_type = store.get(0, path.as_bytes())?;
+        let client_type = store.get(Location::LatestStable, path.as_bytes())?;
         let client_type = String::from_utf8(client_type.to_vec());
         match client_type {
             Err(_) => None,
@@ -88,7 +88,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         let path = format!("clients/{}/clientState", client_id.as_str());
         let node = self.read();
         let store = node.store();
-        let value = store.get(0, path.as_bytes())?;
+        let value = store.get(Location::LatestStable, path.as_bytes())?;
         let client_state = AnyClientState::decode(value.as_slice());
         client_state.ok()
     }
@@ -101,7 +101,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         );
         let node = self.read();
         let store = node.store();
-        let value = store.get(0, path.as_bytes())?;
+        let value = store.get(Location::LatestStable, path.as_bytes())?;
         let consensus_state = AnyConsensusState::decode(value.as_slice());
         consensus_state.ok()
     }
@@ -111,7 +111,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         let node = self.read();
         let store = node.store();
 
-        match store.get(0, path.as_bytes()) {
+        match store.get(Location::LatestStable, path.as_bytes()) {
             None => 0,
             Some(counter_raw) => {
                 let res: ClientCounter = counter_raw.try_into().unwrap();
@@ -209,7 +209,9 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
         let path = format!("clients/{}/connections", client_id.as_str());
         let node = self.read();
         let store = node.store();
-        let connections = store.get(0, path.as_bytes()).unwrap_or_default();
+        let connections = store
+            .get(Location::LatestStable, path.as_bytes())
+            .unwrap_or_default();
         let connections = String::from_utf8(connections).unwrap_or_else(|_| String::from(""));
         let mut connections = serde_json::from_str::<Connections>(&connections)
             .unwrap_or_else(|_| Connections::new());
@@ -230,7 +232,7 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
         let path = format!("connections/{}", connection_id.as_str());
         let node = self.read();
         let store = node.store();
-        let value = store.get(0, path.as_bytes())?;
+        let value = store.get(Location::LatestStable, path.as_bytes())?;
         let raw = RawConnectionEnd::decode(&*value).ok()?;
         ConnectionEnd::try_from(raw).ok()
     }

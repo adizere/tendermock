@@ -11,24 +11,40 @@
 //!  - persist the state of committed blocks, via the `grow` API.
 //!  - update the state of the pending block and access the state for any block,
 //!     via a `get` and `set` API.
+//! A storage has two kinds of `Location`s:
+//!     1. a pending location, which represents the current block being processed, but not yet
+//!         committed;
+//!     2. a stable location, which is versioned by height.
 
 pub use memory::Memory;
 
 mod memory;
 
+/// Defines a location in a `Storage`.
+#[derive(Clone, Copy)]
+#[allow(dead_code)]
+pub enum Location {
+    // Represents the pending location. This is the location being manipulated by `set` method.
+    Pending,
+
+    // Represents the location in the stable storage, for the last block
+    LatestStable,
+
+    // Represents the location in the stable storage, for an arbitrary block
+    Stable(u64),
+}
+
 /// A concurrent storage for on-chain data, using interior mutability.
 pub trait Storage: std::fmt::Debug {
-    /// Set a value in the store at the last (pending) height.
-    /// The storage starts up by having height 1 committed (or stable); consequently the mutable
-    /// (pending) height in the beginning is 2.
+    /// Set a value in the store at the `Pending` location.
+    /// The storage starts up by having height 1 committed (or `Stable`); consequently the mutable
+    /// (Pending) height in the beginning is 2.
     fn set(&self, path: Vec<u8>, value: Vec<u8>);
 
-    /// Access the value at a given path and height.
-    /// Returns `None` if no block matches `height`.
-    /// If height = 0, then it accesses the store for the last committed block (initially, this is
-    /// height 1).
-    fn get(&self, height: u64, path: &[u8]) -> Option<Vec<u8>>;
+    /// Access the value at a given path and location.
+    /// Returns `None` if nothing found.
+    fn get(&self, loc: Location, path: &[u8]) -> Option<Vec<u8>>;
 
-    /// Freeze the pending store by adding it to the committed chain and create a new pending.
+    /// Freeze the pending store by adding it to the committed chain, and create a new pending.
     fn grow(&self);
 }

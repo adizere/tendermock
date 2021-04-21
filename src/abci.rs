@@ -9,7 +9,7 @@ use tendermint_rpc::endpoint::{
 };
 
 use crate::node::Node;
-use crate::store::Storage;
+use crate::store::{Location, Storage};
 
 /// Return information about the ABCI API.
 pub fn get_info<S: Storage>(node: &Node<S>) -> AbciInfo {
@@ -29,8 +29,8 @@ pub fn get_info<S: Storage>(node: &Node<S>) -> AbciInfo {
 /// Handle an ABCI query.
 pub fn handle_query<S: Storage>(query: AbciQueryRequest, node: &Node<S>) -> AbciQuery {
     let height = match query.height {
-        None => 0,
-        Some(h) => h.value(),
+        None => Location::LatestStable,
+        Some(h) => Location::Stable(h.value()),
     };
     let store = node.store();
     let item = store.get(height, &query.data);
@@ -43,7 +43,7 @@ pub fn handle_query<S: Storage>(query: AbciQueryRequest, node: &Node<S>) -> Abci
             key: query.data,
             value: item.to_vec(),
             proof: None,
-            height: block::Height::from(height as u32),
+            height: query.height.unwrap_or_else(|| block::Height::from(0_u8)),
             codespace: "".to_string(),
         }
     } else {
@@ -55,7 +55,7 @@ pub fn handle_query<S: Storage>(query: AbciQueryRequest, node: &Node<S>) -> Abci
             key: query.data,
             value: vec![],
             proof: None,
-            height: block::Height::from(height as u32),
+            height: query.height.unwrap_or_else(|| block::Height::from(0_u8)),
             codespace: "".to_string(),
         }
     }
