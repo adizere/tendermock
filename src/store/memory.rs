@@ -3,7 +3,7 @@ use std::sync::RwLock;
 use crate::avl::AvlTree;
 use crate::store::{Location, Storage};
 
-/// An in-memory store backed by a simple hashmap.
+/// An in-memory store backed by an AvlTree.
 pub struct Memory {
     store: RwLock<Vec<AvlTree<Vec<u8>, Vec<u8>>>>,
     pending: RwLock<AvlTree<Vec<u8>, Vec<u8>>>,

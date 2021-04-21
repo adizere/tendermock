@@ -24,13 +24,14 @@ mod memory;
 #[derive(Clone, Copy)]
 #[allow(dead_code)]
 pub enum Location {
-    // Represents the pending location. This is the location being manipulated by `set` method.
+    /// Represents the pending location.
+    /// This is the location being manipulated by the `set` method.
     Pending,
 
-    // Represents the location in the stable storage, for the last block
+    /// Represents the location in the stable storage, for the last block.
     LatestStable,
 
-    // Represents the location in the stable storage, for an arbitrary block
+    /// Represents the location in the stable storage, for an arbitrary block.
     Stable(u64),
 }
 

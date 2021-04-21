@@ -1,7 +1,11 @@
 //! # Test suite of tendermock AVL Tree.
 
+use ics23::commitment_proof::Proof;
 use ics23::verify_membership;
+use sha2::{Digest, Sha256};
 
+use crate::avl::node::{as_node_ref, NodeRef};
+use crate::avl::tree::AvlTree;
 use crate::avl::*;
 
 #[test]

@@ -14,7 +14,7 @@ use crate::store::{Location, Storage};
 /// Return information about the ABCI API.
 pub fn get_info<S: Storage>(node: &Node<S>) -> AbciInfo {
     let chain = node.chain();
-    // TODO: inject valid informations
+    // TODO: inject valid information
     AbciInfo {
         data: "data_placeholder".to_string(),
         version: "v0.17.0".to_string(),
