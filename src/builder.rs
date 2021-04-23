@@ -21,6 +21,7 @@ use crate::store;
 /// Tendermock builder object.
 pub struct Tendermock {
     /// Interval between new blocks, in seconds.
+    /// This parameter applies to all nodes in the Tendermock instance.
     growth_interval: u64,
 
     /// A list of interfaces for the chain, the first address for JsonRPC and the second for gRPC.
@@ -49,8 +50,8 @@ impl Tendermock {
         self
     }
 
-    /// Add a new interface (one JsonRPC and one gRPC address).
-    pub fn add_interface(&mut self, jrpc: SocketAddr, grpc: SocketAddr) -> &mut Self {
+    /// Add a new node interface (one JsonRPC and one gRPC address).
+    pub fn register_node_interface(&mut self, jrpc: SocketAddr, grpc: SocketAddr) -> &mut Self {
         self.interfaces.push((jrpc, grpc));
         self
     }
@@ -61,12 +62,12 @@ impl Tendermock {
         self
     }
 
-    /// Start the Tendermock node.
+    /// Start the Tendermock instance.
     ///
     /// This call is blocking, for running multiple nodes simultaneously threading can be used (a
     /// scheduler will run on each thread).
     pub fn start(&self) {
-        // Initialize node
+        // Initialize a node.
         let node = node::Node::new(&self.config);
         let mut node = node.shared();
         init::init(&mut node, &self.config);

@@ -25,8 +25,8 @@ const JRPC_QUERIES: &[&str] = &[
 fn start_server() {
     let mut instance = Tendermock::default();
     instance
-        .add_interface(JSON_RPC_ADDR.parse().unwrap(), GRPC_ADDR.parse().unwrap())
-        .add_interface(
+        .register_node_interface(JSON_RPC_ADDR.parse().unwrap(), GRPC_ADDR.parse().unwrap())
+        .register_node_interface(
             JSON_RPC_ADDR_2.parse().unwrap(),
             GRPC_ADDR_2.parse().unwrap(),
         );

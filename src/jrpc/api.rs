@@ -186,7 +186,7 @@ where
             Log::Jrpc,
             "/abci_query {{ path: {:?}, data: {} }}",
             req.path,
-            String::from_utf8(req.data.clone()).unwrap_or_else(|_| "".to_string())
+            String::from_utf8(req.data.clone()).unwrap_or_else(|_| "?".to_string())
         );
         let node = state.node.read();
         Ok(AbciQueryResponse {
@@ -204,11 +204,6 @@ where
             "/broadcast_tx_commit {{ tx: {} bytes }}",
             req.tx.as_bytes().len()
         );
-        // Grow chain
-        let node = state.node.write();
-        node.chain().grow();
-        let block = node.chain().get_block(0).unwrap();
-        drop(node); // Release write lock
 
         // Decode the txs
         let data: Vec<u8> = req.tx.into();
@@ -236,6 +231,12 @@ where
                 _ => None,
             })
             .collect();
+
+        // Grow chain
+        let node = state.node.write();
+        node.chain().grow();
+        let block = node.chain().get_block(0).unwrap();
+        drop(node); // Release write lock
 
         // Build a response, for now with arbitrary values.
         let tx_result = TxResult {

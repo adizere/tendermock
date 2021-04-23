@@ -21,7 +21,7 @@ pub use memory::Memory;
 mod memory;
 
 /// Defines a location in a `Storage`.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[allow(dead_code)]
 pub enum Location {
     /// Represents the pending location.

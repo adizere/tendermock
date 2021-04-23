@@ -14,5 +14,5 @@ mod shared;
 
 pub use bare::Node;
 pub use error::Error;
-pub use objects::ClientCounter;
+pub use objects::Counter;
 pub use shared::SharedNode;

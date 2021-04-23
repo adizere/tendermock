@@ -8,6 +8,7 @@ use tendermint_rpc::endpoint::{
     abci_info::AbciInfo, abci_query::AbciQuery, abci_query::Request as AbciQueryRequest,
 };
 
+use crate::logger::Log;
 use crate::node::Node;
 use crate::store::{Location, Storage};
 
@@ -28,35 +29,45 @@ pub fn get_info<S: Storage>(node: &Node<S>) -> AbciInfo {
 
 /// Handle an ABCI query.
 pub fn handle_query<S: Storage>(query: AbciQueryRequest, node: &Node<S>) -> AbciQuery {
-    let height = match query.height {
+    let loc = match query.height {
         None => Location::LatestStable,
         Some(h) => Location::Stable(h.value()),
     };
     let store = node.store();
-    let item = store.get(height, &query.data);
-    if let Some(item) = item {
-        AbciQuery {
-            code: Code::Ok,
-            log: AbciLog::from("exists"),
-            info: "".to_string(),
-            index: 0,
-            key: query.data,
-            value: item.to_vec(),
-            proof: None,
-            height: query.height.unwrap_or_else(|| block::Height::from(0_u8)),
-            codespace: "".to_string(),
+    let item = store.get(loc, &query.data);
+
+    match item {
+        Some(item) => {
+            log!(
+                Log::Abci,
+                "Query returning response item of length {}",
+                item.len()
+            );
+            AbciQuery {
+                code: Code::Ok,
+                log: AbciLog::from("exists"),
+                info: "".to_string(),
+                index: 0,
+                key: query.data,
+                value: item.to_vec(),
+                proof: None,
+                height: query.height.unwrap_or_else(|| block::Height::from(0_u8)),
+                codespace: "".to_string(),
+            }
         }
-    } else {
-        AbciQuery {
-            code: Code::Err(1),
-            log: AbciLog::from("data do not exist"),
-            info: "Data not found".to_string(),
-            index: 0,
-            key: query.data,
-            value: vec![],
-            proof: None,
-            height: query.height.unwrap_or_else(|| block::Height::from(0_u8)),
-            codespace: "".to_string(),
+        None => {
+            log!(Log::Abci, "Query returning error (not found)");
+            AbciQuery {
+                code: Code::Err(1),
+                log: AbciLog::from("data do not exist"),
+                info: "Data not found".to_string(),
+                index: 0,
+                key: query.data,
+                value: vec![],
+                proof: None,
+                height: query.height.unwrap_or_else(|| block::Height::from(0_u8)),
+                codespace: "".to_string(),
+            }
         }
     }
 }

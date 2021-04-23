@@ -10,7 +10,7 @@
 //!
 //! Tendermock::default()
 //!     .growth_rate(10)
-//!     .add_interface(jrpc_addr, grpc_addr)
+//!     .register_node_interface(jrpc_addr, grpc_addr)
 //!     .start();
 //! ```
 

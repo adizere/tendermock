@@ -1,11 +1,12 @@
 use clap::Clap;
+
 use tendermock::Tendermock;
 
 // Define the CLI interface (see Clap doc)
 #[derive(Clap)]
 #[clap(version = "0.1.0")]
 #[clap(verbatim_doc_comment)]
-/// Tendermock - a mocked Tendermint node
+/// Tendermock - a mocked Tendermint instance consisting of a single node.
 pub struct Args {
     /// JsonRPC port
     #[clap(short, long, default_value = "26657")]
@@ -32,7 +33,7 @@ fn main() {
 
     let mut tendermock = Tendermock::default();
     tendermock
-        .add_interface(jrpc_addr, grpc_addr)
+        .register_node_interface(jrpc_addr, grpc_addr)
         .growth_rate(args.block);
     if let Some(config_path) = args.config {
         tendermock.load_config(config_path);

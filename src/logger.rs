@@ -13,19 +13,23 @@ use colored::*;
 
 /// The list of modules that can emit logs.
 pub enum Log {
+    Abci,
     Jrpc,
     Grpc,
     Chain,
     Websocket,
+    Store,
 }
 
 impl Log {
     pub fn to_colored_string(&self) -> ColoredString {
         match self {
+            Log::Abci => "[Abci]".bright_cyan(),
             Log::Websocket => "[Websocket]".cyan(),
             Log::Jrpc => "[JsonRPC]".yellow(),
             Log::Chain => "[Chain]".magenta(),
             Log::Grpc => "[gRPC]".green(),
+            Log::Store => "[Store]".bright_green(),
         }
     }
 }

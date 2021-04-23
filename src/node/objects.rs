@@ -18,28 +18,31 @@ impl Connections {
     }
 }
 
+/// A counter type for representation of client, connection, or channel counters.
+/// The primary use-case for this type is for interfacing with the storage: a counter can be read
+/// or written easily due to its support for serialization to/from `[u8]`.
 #[derive(Debug, PartialEq, Clone)]
-pub struct ClientCounter(u64);
+pub struct Counter(u64);
 
-impl From<u64> for ClientCounter {
+impl From<u64> for Counter {
     fn from(v: u64) -> Self {
         Self(v)
     }
 }
 
-impl From<ClientCounter> for u64 {
-    fn from(c: ClientCounter) -> Self {
+impl From<Counter> for u64 {
+    fn from(c: Counter) -> Self {
         c.0
     }
 }
 
-impl From<ClientCounter> for Vec<u8> {
-    fn from(c: ClientCounter) -> Self {
+impl From<Counter> for Vec<u8> {
+    fn from(c: Counter) -> Self {
         Vec::from(c.0.to_ne_bytes())
     }
 }
 
-impl TryFrom<Vec<u8>> for ClientCounter {
+impl TryFrom<Vec<u8>> for Counter {
     type Error = Error;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
@@ -47,11 +50,11 @@ impl TryFrom<Vec<u8>> for ClientCounter {
         // TODO: avoid unwrap below & use typed error to return upon problematic input
         let (bytes, _) = value.split_at(std::mem::size_of::<u64>());
         let res = u64::from_ne_bytes(bytes.try_into().unwrap());
-        Ok(ClientCounter(res))
+        Ok(Counter(res))
     }
 }
 
-impl std::fmt::Display for ClientCounter {
+impl std::fmt::Display for Counter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
@@ -61,14 +64,14 @@ impl std::fmt::Display for ClientCounter {
 mod tests {
     use std::convert::TryInto;
 
-    use crate::node::objects::ClientCounter;
+    use crate::node::objects::Counter;
 
     #[test]
     fn counter_to_from_bytes() {
         let start = 6789_u64;
-        let counter: ClientCounter = start.into();
+        let counter: Counter = start.into();
         let end_bytes: Vec<u8> = counter.clone().into();
-        let counter_2: ClientCounter = end_bytes.try_into().unwrap();
+        let counter_2: Counter = end_bytes.try_into().unwrap();
         assert_eq!(counter, counter_2);
     }
 }

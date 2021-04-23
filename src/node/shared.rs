@@ -28,8 +28,9 @@ use prost::Message;
 use prost_types::Any;
 use tendermint_proto::Protobuf;
 
+use crate::logger::Log;
 use crate::node::bare::Node;
-use crate::node::objects::{ClientCounter, Connections};
+use crate::node::objects::{Connections, Counter};
 use crate::store::{Location, Storage};
 
 // System constant
@@ -114,7 +115,7 @@ impl<S: Storage> ClientReader for SharedNode<S> {
         match store.get(Location::LatestStable, path.as_bytes()) {
             None => 0,
             Some(counter_raw) => {
-                let res: ClientCounter = counter_raw.try_into().unwrap();
+                let res: Counter = counter_raw.try_into().unwrap();
                 res.into()
             }
         }
@@ -131,9 +132,10 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         let node = self.read();
         let store = node.store();
         store.set(
-            path.into_bytes(),
+            path.clone().into_bytes(),
             client_type.as_string().as_bytes().to_owned(),
         );
+        log!(Log::Store, "Storing client type at {:?}", path.into_bytes());
         Ok(())
     }
 
@@ -143,8 +145,6 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         client_state: AnyClientState,
     ) -> Result<(), ClientError> {
         let path = format!("clients/{}/clientState", client_id.as_str());
-        // Store the client type
-        self.store_client_type(client_id, client_state.client_type())?;
         // Store the client state
         let data: Any = client_state.into();
         let mut buffer = Vec::new();
@@ -152,7 +152,12 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
             .map_err(|e| ClientErrorKind::InvalidRawClientState.context(e))?;
         let node = self.read();
         let store = node.store();
-        store.set(path.into_bytes(), buffer);
+        store.set(path.clone().into_bytes(), buffer);
+        log!(
+            Log::Store,
+            "Storing client state at {:?}",
+            path.into_bytes()
+        );
         Ok(())
     }
 
@@ -173,12 +178,17 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
             .map_err(|e| ClientErrorKind::InvalidRawConsensusState.context(e))?;
         let node = self.read();
         let store = node.store();
-        store.set(path.into_bytes(), buffer);
+        store.set(path.clone().into_bytes(), buffer);
+        log!(
+            Log::Store,
+            "Storing client consensus state at {:?}",
+            path.into_bytes()
+        );
         Ok(())
     }
 
     fn increase_client_counter(&mut self) {
-        let cnt = ClientCounter::from(self.client_counter() + 1);
+        let cnt = Counter::from(self.client_counter() + 1);
         let path = "meta/clients/counter".to_string();
         let node = self.read();
         let store = node.store();
@@ -223,7 +233,11 @@ impl<S: Storage> ConnectionKeeper for SharedNode<S> {
     }
 
     fn increase_connection_counter(&mut self) {
-        todo!()
+        let cnt = Counter::from(self.connection_counter() + 1);
+        let path = "meta/connections/counter".to_string();
+        let node = self.read();
+        let store = node.store();
+        store.set(path.into_bytes(), cnt.into());
     }
 }
 
@@ -283,7 +297,17 @@ impl<S: Storage> ConnectionReader for SharedNode<S> {
     }
 
     fn connection_counter(&self) -> u64 {
-        todo!()
+        let path = "meta/connections/counter".to_string();
+        let node = self.read();
+        let store = node.store();
+
+        match store.get(Location::LatestStable, path.as_bytes()) {
+            None => 0,
+            Some(counter_raw) => {
+                let res: Counter = counter_raw.try_into().unwrap(); // convert from `[u8]`
+                res.into() // convert to `u64`.
+            }
+        }
     }
 }
 
