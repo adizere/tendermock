@@ -38,8 +38,8 @@ pub enum Location {
 /// A concurrent storage for on-chain data, using interior mutability.
 pub trait Storage: std::fmt::Debug {
     /// Set a value in the store at the `Pending` location.
-    /// The storage starts up by having height 1 committed (or `Stable`); consequently the mutable
-    /// (Pending) height in the beginning is 2.
+    /// The storage starts up by having height 0 committed (or `Stable`); consequently the mutable
+    /// `Pending` height in the beginning is 1.
     fn set(&self, path: Vec<u8>, value: Vec<u8>);
 
     /// Access the value at a given path and location.

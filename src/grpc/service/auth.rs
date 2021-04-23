@@ -1,14 +1,16 @@
 //! # gRPC Auth
 //!
 //! The auth tendermint gRPC API.
-use crate::logger::Log;
-use crate::node;
-use crate::store::Storage;
+
 use ibc_proto::cosmos::auth::v1beta1;
 use ibc_proto::cosmos::auth::v1beta1::query_server::{Query, QueryServer};
 use prost::Message;
 use prost_types::Any;
 use tonic::{Request, Response, Status};
+
+use crate::logger::Log;
+use crate::node;
+use crate::store::Storage;
 
 pub fn get_service<S: 'static + Storage + Sync + Send>(
     node: node::SharedNode<S>,

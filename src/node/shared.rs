@@ -23,11 +23,13 @@ use ibc::{
     ics26_routing::context::Ics26Context,
     Height,
 };
+use ibc_proto::ibc::core::client::v1::ConsensusStateWithHeight;
 use ibc_proto::ibc::core::connection::v1::ConnectionEnd as RawConnectionEnd;
 use prost::Message;
 use prost_types::Any;
 use tendermint_proto::Protobuf;
 
+use crate::grpc::GrpcContext;
 use crate::logger::Log;
 use crate::node::bare::Node;
 use crate::node::objects::{Connections, Counter};
@@ -135,7 +137,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
             path.clone().into_bytes(),
             client_type.as_string().as_bytes().to_owned(),
         );
-        log!(Log::Store, "Storing client type at {:?}", path.into_bytes());
+        log!(Log::Store, "Storing client type at {}", path);
         Ok(())
     }
 
@@ -153,11 +155,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         let node = self.read();
         let store = node.store();
         store.set(path.clone().into_bytes(), buffer);
-        log!(
-            Log::Store,
-            "Storing client state at {:?}",
-            path.into_bytes()
-        );
+        log!(Log::Store, "Storing client state at {}", path);
         Ok(())
     }
 
@@ -179,11 +177,7 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         let node = self.read();
         let store = node.store();
         store.set(path.clone().into_bytes(), buffer);
-        log!(
-            Log::Store,
-            "Storing client consensus state at {:?}",
-            path.into_bytes()
-        );
+        log!(Log::Store, "Storing client consensus state at {}", path);
         Ok(())
     }
 
@@ -192,6 +186,12 @@ impl<S: Storage> ClientKeeper for SharedNode<S> {
         let path = "meta/clients/counter".to_string();
         let node = self.read();
         let store = node.store();
+        log!(
+            Log::Store,
+            "Storing new client counter state at {}: {}",
+            path,
+            cnt
+        );
         store.set(path.into_bytes(), cnt.into());
     }
 }
@@ -419,7 +419,7 @@ impl<S: Storage> ChannelReader for SharedNode<S> {
         client_id: &ClientId,
         height: Height,
     ) -> Option<AnyConsensusState> {
-        todo!()
+        self.consensus_state(client_id, height)
     }
 
     fn authenticated_capability(&self, port_id: &PortId) -> Result<Capability, Error> {
@@ -480,3 +480,17 @@ impl<S: Storage> PortReader for SharedNode<S> {
 impl<S: Storage> Ics20Context for SharedNode<S> {}
 
 impl<S: Storage> Ics26Context for SharedNode<S> {}
+
+impl<S: Storage> GrpcContext for SharedNode<S> {
+    fn consensus_states(&self, client_id: &ClientId) -> Vec<ConsensusStateWithHeight> {
+        log!(Log::Store, "Fetching all consensus state of {}", client_id);
+        let path = format!("clients/{}/consensusState/", client_id.as_str(),);
+        // WIP
+        // let node = self.read();
+        // let store = node.store();
+        // let value = store.get(Location::LatestStable, path.as_bytes())?;
+        // let consensus_state = AnyConsensusState::decode(value.as_slice());
+
+        vec![]
+    }
+}

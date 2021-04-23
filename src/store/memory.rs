@@ -54,13 +54,6 @@ impl Storage for Memory {
         store.insert(path, value);
     }
 
-    /// Implementation details: three cases:
-    ///  - height = 0 -> access the store for the last __committed__ block (initially, height 1);
-    ///         becomes LatestStable
-    ///  - height - 1 < store.len() -> access the block n° (height-1);
-    ///         becomes Stable(_)
-    ///  - height - 1 == store.len() -> access the pending block.
-    ///         becomes Pending
     fn get(&self, loc: Location, path: &[u8]) -> Option<Vec<u8>> {
         let store = self.store.read().unwrap();
 
