@@ -1,7 +1,7 @@
 use std::sync::RwLock;
 
 use crate::avl::AvlTree;
-use crate::store::{Location, Storage};
+use crate::store::{Location, PathValue, Storage};
 
 /// An in-memory store backed by an AvlTree.
 pub struct Memory {
@@ -78,6 +78,36 @@ impl Storage for Memory {
                 } else {
                     None
                 }
+            }
+        }
+    }
+
+    fn get_by_prefix(&self, loc: Location, path_prefix: &[u8]) -> Vec<PathValue> {
+        let store = self.store.read().unwrap();
+        match loc {
+            Location::Pending => {
+                drop(store); // Release lock on the stable store
+                unimplemented!()
+            }
+            Location::LatestStable => {
+                let store = store.last().unwrap();
+                let all_keys = store.get_keys();
+                all_keys
+                    .iter()
+                    .filter_map(|&k| {
+                        // If the key starts with the input prefix, then fetch value from the store
+                        k.starts_with(path_prefix)
+                            .then(|| store.get(k).unwrap())
+                            .cloned()
+                            .map(|value| PathValue {
+                                path: k.clone(),
+                                value,
+                            })
+                    })
+                    .collect()
+            }
+            Location::Stable(_height) => {
+                unimplemented!()
             }
         }
     }

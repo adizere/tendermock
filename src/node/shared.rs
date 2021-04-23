@@ -23,6 +23,7 @@ use ibc::{
     ics26_routing::context::Ics26Context,
     Height,
 };
+use ibc_proto::ibc::core::client;
 use ibc_proto::ibc::core::client::v1::ConsensusStateWithHeight;
 use ibc_proto::ibc::core::connection::v1::ConnectionEnd as RawConnectionEnd;
 use prost::Message;
@@ -33,7 +34,7 @@ use crate::grpc::GrpcContext;
 use crate::logger::Log;
 use crate::node::bare::Node;
 use crate::node::objects::{Connections, Counter};
-use crate::store::{Location, Storage};
+use crate::store::{Location, PathValue, Storage};
 
 // System constant
 const COMMITMENT_PREFIX: &str = "store/ibc/key";
@@ -485,12 +486,29 @@ impl<S: Storage> GrpcContext for SharedNode<S> {
     fn consensus_states(&self, client_id: &ClientId) -> Vec<ConsensusStateWithHeight> {
         log!(Log::Store, "Fetching all consensus state of {}", client_id);
         let path = format!("clients/{}/consensusState/", client_id.as_str(),);
-        // WIP
-        // let node = self.read();
-        // let store = node.store();
-        // let value = store.get(Location::LatestStable, path.as_bytes())?;
-        // let consensus_state = AnyConsensusState::decode(value.as_slice());
+        let node = self.read();
+        let store = node.store();
+        let hits = store.get_by_prefix(Location::LatestStable, path.as_bytes());
 
-        vec![]
+        // Convert each pair into a `ConsensusStateWithHeight`
+        let mut res = vec![];
+        for PathValue { path: p, value: v } in hits {
+            let path = String::from_utf8_lossy(p.as_slice()).into_owned();
+            // The height is encoded in the path
+            let height = path
+                .split('/')
+                .last()
+                .map(|h| Height::from_str(h).ok())
+                .flatten()
+                .map(client::v1::Height::from);
+            // Decode the `ConsensusState` from the value
+            let consensus_state = AnyConsensusState::decode(v.as_slice()).ok().map(Any::from);
+            res.push(ConsensusStateWithHeight {
+                height,
+                consensus_state,
+            });
+        }
+
+        res
     }
 }

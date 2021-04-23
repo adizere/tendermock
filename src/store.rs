@@ -35,6 +35,11 @@ pub enum Location {
     Stable(u64),
 }
 
+pub struct PathValue {
+    pub path: Vec<u8>,
+    pub value: Vec<u8>,
+}
+
 /// A concurrent storage for on-chain data, using interior mutability.
 pub trait Storage: std::fmt::Debug {
     /// Set a value in the store at the `Pending` location.
@@ -45,6 +50,10 @@ pub trait Storage: std::fmt::Debug {
     /// Access the value at a given path and location.
     /// Returns `None` if nothing found.
     fn get(&self, loc: Location, path: &[u8]) -> Option<Vec<u8>>;
+
+    /// Access the value(s) at a given path prefix and location.
+    /// Returns `None` if nothing found.
+    fn get_by_prefix(&self, loc: Location, prefix: &[u8]) -> Vec<PathValue>;
 
     /// Freeze the pending store by adding it to the committed chain, and create a new pending.
     fn grow(&self);

@@ -66,12 +66,15 @@ impl<S: 'static + Storage + Sync + Send> Query for QueryService<S> {
         &self,
         request: Request<QueryConsensusStatesRequest>,
     ) -> Result<Response<QueryConsensusStatesResponse>, Status> {
-        log!(Log::Grpc, "/client/consensus_states {:?}", request);
         let client_id_raw = request.into_inner().client_id;
+        log!(Log::Grpc, "/client/consensus_states {}", client_id_raw);
+
         let client_id_opt = ClientId::from_str(client_id_raw.as_str());
         match client_id_opt {
             Ok(client_id) => {
                 let cs = self.node.consensus_states(&client_id);
+                log!(Log::Grpc, "Consensus states found: {}", cs.len());
+
                 let response = QueryConsensusStatesResponse {
                     consensus_states: cs,
                     pagination: None,
